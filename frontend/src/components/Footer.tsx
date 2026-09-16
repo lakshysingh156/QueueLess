@@ -9,10 +9,10 @@ export default function Footer() {
             <Activity className="w-3 h-3 text-white" />
           </div>
           <span className="font-medium text-slate-700">QueueLess</span>
-          <span>— Healthcare Navigation Prototype</span>
+          <span>— Healthcare Navigation</span>
         </div>
         <p className="text-center sm:text-right text-xs text-slate-400 max-w-xs">
-          For a real medical emergency, contact local emergency services immediately. This is a B.Tech project prototype and does not provide medical diagnosis.
+          For a real medical emergency, contact local emergency services immediately. QueueLess is a navigation tool and does not provide medical diagnosis.
         </p>
       </div>
     </footer>

@@ -5,12 +5,12 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const CATEGORIES = [
-  { dept: 'General Medicine', symptoms: 'Fever, cold, headache, fatigue', icon: '🩺' },
-  { dept: 'Orthopedics', symptoms: 'Knee pain, joint pain, fracture', icon: '🦴' },
-  { dept: 'Cardiology', symptoms: 'Chest pain, heart palpitations', icon: '❤️' },
-  { dept: 'Dermatology', symptoms: 'Skin rash, acne, eczema', icon: '🌿' },
-  { dept: 'Ophthalmology', symptoms: 'Eye pain, vision problems', icon: '👁️' },
-  { dept: 'Dentistry', symptoms: 'Toothache, dental pain', icon: '🦷' },
+  { dept: 'General Medicine', symptoms: 'Fever, cold, headache, fatigue' },
+  { dept: 'Orthopedics', symptoms: 'Knee pain, joint pain, fracture' },
+  { dept: 'Cardiology', symptoms: 'Chest pain, heart palpitations' },
+  { dept: 'Dermatology', symptoms: 'Skin rash, acne, eczema' },
+  { dept: 'Ophthalmology', symptoms: 'Eye pain, vision problems' },
+  { dept: 'Dentistry', symptoms: 'Toothache, dental pain' },
 ];
 
 export default function SearchPage() {
@@ -40,7 +40,7 @@ export default function SearchPage() {
               autoFocus
               value={symptom}
               onChange={(e) => setSymptom(e.target.value)}
-              placeholder="e.g. knee pain, rash, fever, eye problem…"
+              placeholder="e.g. knee pain, rash, fever, eye problem..."
               className="w-full pl-10 pr-4 py-3.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
             />
           </div>
@@ -59,11 +59,13 @@ export default function SearchPage() {
               <button
                 key={cat.dept}
                 onClick={() => navigate(`/results?symptom=${encodeURIComponent(cat.dept)}`)}
-                className="flex items-center gap-4 bg-white border border-slate-200 rounded-xl px-4 py-4 hover:border-sky-300 hover:bg-sky-50 transition-all text-left group"
+                className="flex items-start gap-4 bg-white border border-slate-200 rounded-xl px-5 py-4 hover:border-sky-300 hover:bg-sky-50 transition-all text-left group"
               >
-                <span className="text-2xl">{cat.icon}</span>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-sky-100 flex items-center justify-center flex-shrink-0 transition-colors mt-0.5">
+                  <div className="w-3 h-3 rounded-full bg-slate-400 group-hover:bg-sky-500 transition-colors" />
+                </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-900 group-hover:text-sky-700 transition-colors">{cat.dept}</p>
+                  <p className="text-sm font-semibold text-slate-900 group-hover:text-sky-700 transition-colors">{cat.dept}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{cat.symptoms}</p>
                 </div>
               </button>

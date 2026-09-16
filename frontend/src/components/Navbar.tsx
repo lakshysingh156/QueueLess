@@ -3,10 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
   const location = useLocation();
-  const isHome = location.pathname === '/';
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className={`sticky top-0 z-50 border-b ${isHome ? 'bg-white border-slate-200' : 'bg-white border-slate-200'}`}>
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 select-none">
           <div className="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center">
@@ -15,9 +15,17 @@ export default function Navbar() {
           <span className="text-lg font-semibold text-slate-900 tracking-tight">QueueLess</span>
         </Link>
 
-        <nav className="hidden sm:flex items-center gap-6 text-sm text-slate-600">
-          <Link to="/" className="hover:text-slate-900 transition-colors">Home</Link>
-          <Link to="/emergency" className="flex items-center gap-1.5 text-rose-600 hover:text-rose-700 font-medium transition-colors">
+        <nav className="hidden sm:flex items-center gap-6 text-sm">
+          <Link
+            to="/search"
+            className={`transition-colors ${isActive('/search') ? 'text-sky-600 font-medium' : 'text-slate-600 hover:text-slate-900'}`}
+          >
+            Find Care
+          </Link>
+          <Link
+            to="/emergency"
+            className="flex items-center gap-1.5 text-rose-600 hover:text-rose-700 font-medium transition-colors"
+          >
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             Emergency
           </Link>
@@ -26,7 +34,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           <Link
             to="/login"
-            className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+            className="text-sm text-slate-600 hover:text-slate-900 transition-colors hidden sm:block"
           >
             Sign in
           </Link>

@@ -21,6 +21,16 @@ app.include_router(search.router, prefix="/api/search", tags=["search"])
 app.include_router(queue.router, prefix="/api/queue", tags=["queue"])
 
 
+@app.get("/")
+def root():
+    return {"message": "QueueLess API is running"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok", "service": "QueueLess API"}

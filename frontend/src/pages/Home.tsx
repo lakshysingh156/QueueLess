@@ -15,12 +15,12 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const QUICK_SYMPTOMS = [
-  { label: 'Knee pain', icon: '🦴' },
-  { label: 'Skin rash', icon: '🩺' },
-  { label: 'Fever', icon: '🌡️' },
-  { label: 'Eye problem', icon: '👁️' },
-  { label: 'Dental pain', icon: '🦷' },
-  { label: 'Chest pain', icon: '❤️' },
+  'Knee pain',
+  'Skin rash',
+  'Fever',
+  'Eye problem',
+  'Dental pain',
+  'Chest pain',
 ];
 
 const HOW_IT_WORKS = [
@@ -32,7 +32,7 @@ const HOW_IT_WORKS = [
   {
     icon: BarChart2,
     title: 'See live estimates',
-    body: 'Compare hospitals by distance, estimated wait time, and cost — all in one place.',
+    body: 'Compare hospitals by distance, estimated wait time, and cost — all in one view.',
   },
   {
     icon: Clock,
@@ -56,10 +56,6 @@ export default function Home() {
     navigate(`/results?symptom=${encodeURIComponent(symptom.trim())}`);
   }
 
-  function handleQuick(label: string) {
-    navigate(`/results?symptom=${encodeURIComponent(label)}`);
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -68,11 +64,6 @@ export default function Home() {
       <section className="bg-white border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-full px-3 py-1 mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-              Healthcare Navigation — B.Tech Prototype
-            </span>
-
             <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
               Find the right hospital,{' '}
               <span className="text-sky-600">at the right time.</span>
@@ -85,12 +76,12 @@ export default function Home() {
             {/* Search bar */}
             <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 max-w-xl">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   value={symptom}
                   onChange={(e) => setSymptom(e.target.value)}
-                  placeholder="e.g. knee pain, skin rash, fever…"
+                  placeholder="e.g. knee pain, skin rash, fever..."
                   className="w-full pl-10 pr-4 py-3.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white placeholder-slate-400 shadow-sm"
                 />
               </div>
@@ -106,13 +97,13 @@ export default function Home() {
             {/* Quick symptoms */}
             <div className="mt-5 flex flex-wrap gap-2">
               <span className="text-xs text-slate-400 flex items-center mr-1">Quick select:</span>
-              {QUICK_SYMPTOMS.map((s) => (
+              {QUICK_SYMPTOMS.map((label) => (
                 <button
-                  key={s.label}
-                  onClick={() => handleQuick(s.label)}
+                  key={label}
+                  onClick={() => navigate(`/results?symptom=${encodeURIComponent(label)}`)}
                   className="text-xs text-slate-600 hover:text-sky-700 bg-slate-100 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 px-3 py-1.5 rounded-full transition-colors"
                 >
-                  {s.icon} {s.label}
+                  {label}
                 </button>
               ))}
             </div>

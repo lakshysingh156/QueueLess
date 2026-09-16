@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Eye, EyeOff } from 'lucide-react';
+import { Activity, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Footer from '../components/Footer';
 
 export default function Login() {
@@ -13,7 +13,6 @@ export default function Login() {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    // Prototype: just navigate home
     navigate('/');
   }
 
@@ -21,17 +20,23 @@ export default function Login() {
     <div className="min-h-screen flex flex-col bg-slate-50">
       <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-sm">
+          {/* Back link */}
+          <Link to="/" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-8 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to QueueLess
+          </Link>
+
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 justify-center mb-8">
+          <div className="flex items-center gap-2 mb-8">
             <div className="w-9 h-9 bg-sky-600 rounded-xl flex items-center justify-center">
               <Activity className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-semibold text-slate-900">QueueLess</span>
-          </Link>
+          </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
             <h1 className="text-lg font-bold text-slate-900 mb-1">
-              {isSignup ? 'Create account' : 'Sign in'}
+              {isSignup ? 'Create an account' : 'Sign in'}
             </h1>
             <p className="text-sm text-slate-500 mb-6">
               {isSignup ? 'Start using QueueLess today.' : 'Welcome back.'}
@@ -46,7 +51,7 @@ export default function Login() {
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="Lakshay Singh"
+                    placeholder="Your name"
                     className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                   />
                 </div>
@@ -103,10 +108,6 @@ export default function Login() {
               </p>
             </div>
           </div>
-
-          <p className="text-center text-xs text-slate-400 mt-6">
-            B.Tech Software Engineering Prototype · Authentication is not enforced.
-          </p>
         </div>
       </div>
       <Footer />
