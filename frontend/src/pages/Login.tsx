@@ -1,116 +1,192 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import Footer from '../components/Footer';
+import { ArrowLeft, ArrowRight, Check, Clock3, Eye, EyeOff, HeartPulse, MapPin, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [isSignup, setIsSignup] = useState(false);
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSignup, setIsSignup] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    navigate('/');
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => {
+      navigate('/');
+    }, 600);
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <div className="flex-1 flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-sm">
-          {/* Back link */}
-          <Link to="/" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-8 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
+    <div className="site-wrapper auth-page">
+      <main className="auth-shell">
+        <section className="auth-story" aria-label="About QueueLess">
+          <Link to="/" className="auth-brand" aria-label="QueueLess home">
+            <span className="auth-brand-mark" aria-hidden="true">
+              <HeartPulse />
+            </span>
+            <span>QueueLess</span>
+          </Link>
+
+          <div className="auth-story-content">
+            <div className="auth-story-label">
+              <span />
+              Healthcare, made easier to navigate
+            </div>
+            <h1>Make your next care decision with confidence.</h1>
+            <p>
+              Find nearby hospitals, compare estimated wait times, and plan your visit with a
+              little more peace of mind.
+            </p>
+
+            <div className="auth-story-visual" aria-hidden="true">
+              <div className="auth-visual-glow" />
+              <div className="auth-visual-grid" />
+              <svg viewBox="0 0 520 180" preserveAspectRatio="none">
+                <path
+                  className="auth-ecg-track"
+                  d="M0 92 H100 L120 86 L134 98 L152 42 L171 137 L190 92 H300 L320 86 L334 98 L352 42 L371 137 L390 92 H520"
+                />
+                <path
+                  className="auth-ecg-pulse"
+                  pathLength="520"
+                  d="M0 92 H100 L120 86 L134 98 L152 42 L171 137 L190 92 H300 L320 86 L334 98 L352 42 L371 137 L390 92 H520"
+                />
+              </svg>
+              <div className="auth-visual-caption">
+                <span className="auth-visual-icon"><Clock3 /></span>
+                <span>
+                  <strong>Plan at your pace</strong>
+                  <small>Compare care options in one place</small>
+                </span>
+                <ArrowRight className="auth-visual-arrow" />
+              </div>
+            </div>
+
+            <ul className="auth-benefits">
+              <li><MapPin /> Explore hospitals near you</li>
+              <li><Clock3 /> Check estimated wait times</li>
+              <li><ShieldCheck /> Keep your preferences handy</li>
+            </ul>
+          </div>
+
+          <div className="auth-story-footer">
+            <span className="auth-footer-dot" />
+            Less searching. More clarity for your next visit.
+          </div>
+        </section>
+
+        <section className="auth-form-side" aria-label={isSignup ? 'Create an account' : 'Sign in'}>
+          <Link to="/" className="auth-back-link">
+            <ArrowLeft />
             Back to QueueLess
           </Link>
 
-          {/* Logo */}
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-9 h-9 bg-sky-600 rounded-xl flex items-center justify-center">
-              <Activity className="w-5 h-5 text-white" />
+          <div className="auth-form-wrap">
+            <div className="auth-form-heading">
+              <span className="auth-form-kicker">{isSignup ? 'GET STARTED' : 'WELCOME BACK'}</span>
+              <h2>{isSignup ? 'Create your account' : 'Sign in to your account'}</h2>
+              <p>
+                {isSignup
+                  ? 'Save favorite hospitals and keep your care preferences close.'
+                  : 'Access saved hospitals, care history, and travel preferences.'}
+              </p>
             </div>
-            <span className="text-xl font-semibold text-slate-900">QueueLess</span>
-          </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h1 className="text-lg font-bold text-slate-900 mb-1">
-              {isSignup ? 'Create an account' : 'Sign in'}
-            </h1>
-            <p className="text-sm text-slate-500 mb-6">
-              {isSignup ? 'Start using QueueLess today.' : 'Welcome back.'}
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="auth-form">
               {isSignup && (
-                <div>
-                  <label className="text-xs font-medium text-slate-700 block mb-1.5">Full name</label>
+                <div className="auth-field">
+                  <label htmlFor="auth-name">Full name</label>
                   <input
+                    id="auth-name"
                     type="text"
+                    autoComplete="name"
                     required
                     value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="Your name"
-                    className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Enter your name"
                   />
                 </div>
               )}
-              <div>
-                <label className="text-xs font-medium text-slate-700 block mb-1.5">Email address</label>
+
+              <div className="auth-field">
+                <label htmlFor="auth-email">Email address</label>
                 <input
+                  id="auth-email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="you@example.com"
-                  className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                 />
               </div>
-              <div>
-                <label className="text-xs font-medium text-slate-700 block mb-1.5">Password</label>
-                <div className="relative">
+
+              <div className="auth-field">
+                <div className="auth-label-row">
+                  <label htmlFor="auth-password">Password</label>
+                  {!isSignup && <span className="auth-forgot">Forgot password?</span>}
+                </div>
+                <div className="auth-password-wrap">
                   <input
-                    type={showPw ? 'text' : 'password'}
+                    id="auth-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete={isSignup ? 'new-password' : 'current-password'}
+                    minLength={8}
                     required
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-3.5 py-2.5 pr-10 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="auth-password-toggle"
+                    onClick={() => setShowPassword((previous) => !previous)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff /> : <Eye />}
                   </button>
                 </div>
+                {isSignup && <span className="auth-field-hint">Use at least 8 characters.</span>}
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-              >
-                {isSignup ? 'Create account' : 'Sign in'}
+              <button type="submit" disabled={submitted} className="auth-submit">
+                {submitted ? (
+                  <>
+                    <Check />
+                    Authenticating...
+                  </>
+                ) : (
+                  <>
+                    {isSignup ? 'Create account' : 'Sign in'}
+                    <ArrowRight />
+                  </>
+                )}
               </button>
             </form>
 
-            <div className="mt-5 pt-5 border-t border-slate-100 text-center">
-              <p className="text-sm text-slate-500">
-                {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-                <button
-                  onClick={() => setIsSignup(v => !v)}
-                  className="text-sky-600 hover:text-sky-700 font-medium"
-                >
-                  {isSignup ? 'Sign in' : 'Sign up'}
-                </button>
-              </p>
+            <div className="auth-switch">
+              <span>{isSignup ? 'Already have an account?' : 'New to QueueLess?'}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignup((previous) => !previous);
+                  setSubmitted(false);
+                }}
+              >
+                {isSignup ? 'Sign in' : 'Create an account'}
+              </button>
             </div>
+
+            <p className="auth-demo-note">
+              <ShieldCheck />
+              Demonstration mode · credentials are not stored in a public database.
+            </p>
           </div>
-        </div>
-      </div>
-      <Footer />
+        </section>
+      </main>
     </div>
   );
 }

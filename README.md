@@ -1,18 +1,28 @@
-# QueueLess — Healthcare Navigation Prototype
+# QueueLess — Healthcare Navigation
 
-> B.Tech Software Engineering Project
-
-QueueLess helps patients decide **where to go for healthcare and when to go**, by comparing hospitals across department availability, estimated wait time, distance, and cost.
+QueueLess is an intelligent healthcare navigation platform that assists patients in deciding **where to go** and **when to arrive** for non-emergency and emergency conditions. It routes presenting symptoms to medical departments, calculates travel distance, evaluates estimated queue wait times and consultation fees, and projects hourly queue demand across operating hours.
 
 ---
 
-## Tech Stack
+## Key Capabilities
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS v4, React Router, Lucide Icons |
-| Backend | Python, FastAPI, SQLAlchemy |
-| Database | PostgreSQL |
+- **Symptom-to-Department Routing**: Deterministic rule-based engine mapping natural symptom descriptions (knee pain, fever, chest pain, rash, eye discomfort, toothache) to medical departments.
+- **Explainable Recommendation Scoring**: Deterministic multi-criteria scoring algorithm weighting wait time (40%), physical distance (30%), and consultation cost (30%).
+- **Hourly Queue Predictions**: 13-hour forecast window (8:00 AM to 8:00 PM) scaled per hospital, with automated identification of the lowest-wait arrival slot.
+- **Emergency Priority Workflow**: Dedicated safety mode with one-tap dialing for **108** (Ambulance) and **112** (National Emergency), filtering for 24/7 accredited emergency trauma centers.
+- **Clinical Profiles**: Comprehensive hospital detail pages displaying departments, consulting fee ranges, physician credentials, facility accreditations, and coverage under Indian healthcare schemes (Ayushman Bharat PM-JAY, ESI, Delhi Arogya Kosh).
+- **Fernand-Inspired Craft & Aesthetics**: Clean, calm, high-contrast healthcare design system built with Tailwind CSS, custom design tokens, and a procedural 3D wireframe terrain canvas. Zero emojis, zero artificial decoration, and zero unsupported diagnostic claims.
+
+---
+
+## Technology Stack
+
+| Tier | Technologies |
+|---|---|
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS v4, React Router v6, Lucide Icons |
+| **Backend** | Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy 2 |
+| **Database** | PostgreSQL (or SQLite local fallback supported via SQLAlchemy ORM) |
+| **Design System** | Custom tokens in `src/index.css`, Inter typography, accessible focus states |
 
 ---
 
@@ -20,80 +30,116 @@ QueueLess helps patients decide **where to go for healthcare and when to go**, b
 
 ```
 QueueLess/
-├── frontend/          # React + Vite frontend
-│   └── src/
-│       ├── pages/     # Home, Search, Results, HospitalDetail, Emergency, Login
-│       ├── components/ # Navbar, Footer
-│       ├── api.ts     # API client
-│       └── types.ts   # TypeScript types
-└── backend/           # FastAPI backend
-    ├── app/
-    │   ├── main.py    # FastAPI app
-    │   ├── models.py  # SQLAlchemy models
-    │   ├── database.py
-    │   ├── config.py
-    │   └── routers/   # hospitals, search, queue
-    ├── seed.py        # Database seeder (12 hospitals)
-    └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/     Navbar, Footer, TerrainCanvas
+│   │   ├── pages/          Home, SearchPage, Results, HospitalDetail, Emergency, Login
+│   │   ├── api.ts          Typed fetch client with error handling
+│   │   ├── types.ts        TypeScript interfaces matching FastAPI schemas
+│   │   └── index.css       Fernand-inspired design system tokens
+│   └── package.json
+├── backend/
+│   ├── app/
+│   │   ├── main.py         FastAPI application & CORS middleware
+│   │   ├── models.py       SQLAlchemy ORM models
+│   │   ├── database.py     Engine and SessionLocal factory
+│   │   ├── config.py       Environment settings via pydantic-settings
+│   │   └── routers/
+│   │       ├── hospitals.py  Hospital listing & detail endpoints
+│   │       ├── search.py     Symptom routing & recommendation scoring
+│   │       └── queue.py      Hourly queue prediction & lowest-wait calculation
+│   ├── tests/
+│   │   └── test_unit.py    Pytest suite (20 unit tests, 100% pass)
+│   ├── seed.py             Database seeder (12 Delhi-NCR hospitals)
+│   └── requirements.txt
+└── docs/
+    ├── ARCHITECTURE.md     System architecture, data flows, and ER diagrams
+    ├── DESIGN_SYSTEM.md    Fernand-inspired visual principles and tokens
+    ├── DECISIONS.md        Architectural Decision Records (ADRs)
+    └── TESTING.md          Verification guide & reproducible test commands
 ```
 
 ---
 
-## Quick Start
+## Running the Application Locally (Windows)
 
-### Backend
+### Terminal 1: Backend API
 
-```bash
+```powershell
+# Navigate to backend directory
 cd backend
+
+# Create virtual environment (if not already created)
 python -m venv venv
-venv\Scripts\activate        # Windows
+
+# Activate virtual environment
+.\venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env         # Edit DATABASE_URL
-python seed.py               # Seed 12 hospitals
-uvicorn app.main:app --reload
+
+# Seed demonstration database (12 Delhi-NCR hospitals)
+python seed.py
+
+# Start FastAPI server on port 8000
+uvicorn app.main:app --reload --port 8000
 ```
 
-API available at: `http://localhost:8000`  
-Swagger docs: `http://localhost:8000/docs`
+- API Base URL: `http://localhost:8000`
+- Interactive Swagger Documentation: `http://localhost:8000/docs`
+- Health Check: `http://localhost:8000/api/health`
 
-### Frontend
+### Terminal 2: Frontend Web Client
 
-```bash
+```powershell
+# Navigate to frontend directory
 cd frontend
+
+# Install npm packages
 npm install
+
+# Start Vite development server
 npm run dev
 ```
 
-App available at: `http://localhost:5173`
+- Web Client: `http://localhost:5173`
 
 ---
 
-## Demo Flow
+## Reproducible Testing & Verification
 
-### Normal flow
-Home → Enter "knee pain" → Orthopedics → Hospital list → Sort by wait/distance/cost → Open hospital → View queue → Hourly predictions → Suggested visit time
+### Run Backend Unit Tests
 
-### Emergency flow
-Emergency → Enter "severe chest pain" → Emergency hospitals ranked → Queue status → Alternative suggested
+```powershell
+cd backend
+.\venv\Scripts\pytest tests/ -v
+```
 
----
+Expected result: **20 passed** covering symptom routing, great-circle haversine calculation, weighted scoring logic, queue conversion, and multiplier bounds.
 
-## Features (Step 1)
+### Run Frontend Production Build
 
-- ✅ Homepage with search, quick-select symptoms, emergency banner
-- ✅ Symptom-to-department routing (rule-based)
-- ✅ Hospital results with weighted recommendation score
-- ✅ Sort by distance / wait time / cost
-- ✅ Hospital detail page with departments, doctors, facilities
-- ✅ Queue section with hourly wait-time predictions
-- ✅ Suggested visit time (lowest predicted wait)
-- ✅ Emergency mode with 108 call button
-- ✅ Login/signup UI
+```powershell
+cd frontend
+npm run build
+```
+
+Expected result: **Built in ~1s with 0 errors**.
 
 ---
 
-## Data
+## Verified Primary User Journeys
 
-All hospital data is **simulated demo data** seeded from `backend/seed.py`. Queue and wait times are not real hospital data.
+1. **Standard Care Discovery**:
+   `Home Search / Chips ("knee pain")` &rarr; `Routing to Orthopedics` &rarr; `Ranked Results (AIIMS, Safdarjung, Max)` &rarr; `Hospital Detail Profile` &rarr; `Queue & Hourly Prediction Inspection` &rarr; `Best Visit Hour Identified`
 
-> **Disclaimer:** QueueLess is a navigation prototype for a B.Tech project. It does not provide medical diagnosis. For a real medical emergency, contact emergency services (108/112) immediately.
+2. **Emergency Trauma Journey**:
+   `Emergency Priority Banner / Nav` &rarr; `Direct Call Guidance (108 / 112)` &rarr; `Filtered 24/7 Emergency Hospitals` &rarr; `Immediate Trauma Center Coordinates`
+
+---
+
+## Academic Scope & Limitations Disclosure
+
+- **Simulated Queue Data**: Real-time hospital queue APIs are not publicly accessible in India. Queue counts and wait times are generated using synthetic baseline demand patterns scaled per facility. This is explicitly disclosed across all user-facing views.
+- **Non-Diagnostic Notice**: QueueLess provides routing and directional guidance only. It does not perform clinical diagnosis or replace medical practitioners.
+- **Authentication**: Registration and sign-in interfaces demonstrate the user journey; server-side JWT issuance and password hashing are identified as future production milestones.

@@ -1,146 +1,235 @@
-import { useEffect, useState } from 'react';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
-  MapPin, Phone, Clock, ChevronRight, Loader2,
-  CheckCircle2, UserCheck, Stethoscope,
-  ShieldCheck, Info
+  MapPin,
+  Phone,
+  ChevronRight,
+  UserCheck,
+  Stethoscope,
+  ShieldCheck,
+  AlertCircle,
+  IndianRupee,
+  CalendarCheck,
+  RotateCcw,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { getHospital, getQueue } from '../api';
 import type { HospitalDetail, QueueResponse } from '../types';
 
 export default function HospitalDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const department = params.get('department') || 'General Medicine';
 
   const [hospital, setHospital] = useState<HospitalDetail | null>(null);
   const [queue, setQueue] = useState<QueueResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     if (!id) return;
-    const hid = parseInt(id);
+    const hid = parseInt(id, 10);
+    if (isNaN(hid)) {
+      setError('Invalid hospital ID specified');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError('');
     Promise.all([getHospital(hid), getQueue(hid, department)])
-      .then(([h, q]) => { setHospital(h); setQueue(q); })
+      .then(([h, q]) => {
+        setHospital(h);
+        setQueue(q);
+      })
+      .catch(() => setError('Could not load hospital data from the backend.'))
       .finally(() => setLoading(false));
   }, [id, department]);
 
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  function handleDepartmentChange(deptName: string) {
+    setParams({ department: deptName });
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="site-wrapper bg-[#fbfcfd]">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center text-slate-400 gap-3">
-          <Loader2 className="w-5 h-5 animate-spin" /> Loading…
+        <div className="flex-1 flex flex-col items-center justify-center py-24 text-center">
+          <div className="spinner mb-4" />
+          <p className="text-sm font-medium text-slate-700">Loading hospital details...</p>
         </div>
       </div>
     );
   }
 
-  if (!hospital) {
+  if (error || !hospital) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="site-wrapper bg-[#fbfcfd]">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center text-slate-500">Hospital not found.</div>
+        <div className="flex-1 page-container py-24 flex flex-col items-center justify-center text-center">
+          <AlertCircle className="w-8 h-8 text-rose-600 mb-3" />
+          <h1 className="text-base font-semibold text-slate-900 mb-1">Hospital not found</h1>
+          <p className="text-xs text-slate-500 mb-5">{error || 'Could not locate hospital record.'}</p>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={loadData} className="btn btn-secondary btn-sm">
+              <RotateCcw className="w-3.5 h-3.5 mr-1" /> Try again
+            </button>
+            <button type="button" onClick={() => navigate(-1)} className="btn btn-primary btn-sm">
+              Go back
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const dept = hospital.departments.find(d => d.name.toLowerCase() === department.toLowerCase())
-    ?? hospital.departments[0];
+  const activeDept =
+    hospital.departments.find((d) => d.name.toLowerCase() === department.toLowerCase()) ??
+    hospital.departments[0];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="site-wrapper bg-[#fbfcfd]">
       <Navbar />
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-10 w-full">
 
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-          <Link to="/" className="hover:text-slate-700">Home</Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <Link to="/results" className="hover:text-slate-700">Results</Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-slate-900 font-medium truncate">{hospital.name}</span>
-        </div>
+      <main className="flex-1 page-container max-w-5xl py-14 sm:py-16 pb-28">
+        {/* Navigation Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
+          <Link to="/" className="hover:text-slate-700 transition-colors">Home</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="hover:text-slate-700 transition-colors"
+          >
+            Results
+          </button>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="text-slate-700 font-medium truncate">{hospital.name}</span>
+        </nav>
 
-        {/* Header */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 mb-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+        {/* Clean Hospital Header */}
+        <div className="card p-7 sm:p-10 mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div>
-              <div className="flex items-center gap-2 flex-wrap mb-2">
-                <h1 className="text-xl font-bold text-slate-900">{hospital.name}</h1>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
+                  {hospital.name}
+                </h1>
                 {hospital.emergency_available && (
-                  <span className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
-                    Emergency
-                  </span>
+                  <span className="badge badge-red text-xs">24/7 Emergency</span>
                 )}
               </div>
-              <p className="flex items-center gap-1.5 text-sm text-slate-500 mb-1">
-                <MapPin className="w-4 h-4 flex-shrink-0" /> {hospital.address}, {hospital.city}
+
+              <p className="text-xs text-slate-500 flex items-center gap-1.5 mb-2">
+                <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>{hospital.address}, {hospital.city}</span>
               </p>
+
               {hospital.phone && (
-                <p className="flex items-center gap-1.5 text-sm text-slate-500">
-                  <Phone className="w-4 h-4 flex-shrink-0" /> {hospital.phone}
+                <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <a href={`tel:${hospital.phone}`} className="hover:text-blue-600 transition-colors">
+                    {hospital.phone}
+                  </a>
                 </p>
               )}
             </div>
-            <div className="text-right">
-              <p className="text-xs text-slate-400 mb-1">Viewing department</p>
-              <p className="text-sm font-semibold text-sky-700 bg-sky-50 border border-sky-200 px-3 py-1 rounded-lg">{department}</p>
+
+            <div className="sm:text-right shrink-0">
+              <span className="text-[11px] text-slate-400 block mb-1">Current Department</span>
+              <span className="badge badge-blue font-semibold text-xs py-1 px-3">
+                <Stethoscope className="w-3.5 h-3.5 mr-1" />
+                {department}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left column */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* 2-Column Clean Layout with Generous Gap */}
+        <div className="grid lg:grid-cols-3 gap-10 items-start">
+          {/* Main 2-column pane */}
+          <div className="lg:col-span-2 space-y-10">
+            {/* Queue & Hourly Forecast Card */}
+            {queue && <QueueForecastSection queue={queue} />}
 
-            {/* Queue & Wait */}
-            {queue && <QueueSection queue={queue} />}
+            {/* Departments List */}
+            <div className="card p-6 sm:p-7">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <h2 className="text-sm font-semibold text-slate-900">Hospital Departments</h2>
+                <span className="text-xs text-slate-400">{hospital.departments.length} units</span>
+              </div>
 
-            {/* Departments */}
-            <div className="bg-white border border-slate-200 rounded-xl p-5">
-              <h2 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <Stethoscope className="w-4 h-4 text-sky-600" /> Departments
-              </h2>
-              <div className="space-y-2">
-                {hospital.departments.map(d => (
-                  <div key={d.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{d.name}</p>
-                      <p className="text-xs text-slate-500">{d.specialty}</p>
+              <div className="divide-y divide-slate-100">
+                {hospital.departments.map((d) => {
+                  const isCurrent = d.name.toLowerCase() === department.toLowerCase();
+                  return (
+                    <div
+                      key={d.id}
+                      className={`py-3.5 flex items-center justify-between gap-4 transition-colors ${
+                        isCurrent ? 'bg-blue-50/40 -mx-3 px-3 rounded-lg' : ''
+                      }`}
+                    >
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => handleDepartmentChange(d.name)}
+                          className={`text-xs font-semibold hover:text-blue-600 transition-colors text-left ${
+                            isCurrent ? 'text-blue-700' : 'text-slate-800'
+                          }`}
+                        >
+                          {d.name}
+                        </button>
+                        <p className="text-[11px] text-slate-400 mt-0.5">{d.specialty}</p>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-xs font-semibold text-slate-800">
+                          ₹{d.consultation_fee_min} to ₹{d.consultation_fee_max}
+                        </div>
+                        <div className="text-[11px] text-slate-400">{d.current_queue} waiting</div>
+                      </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-xs font-semibold text-slate-800">₹{d.consultation_fee_min}–{d.consultation_fee_max}</p>
-                      <p className="text-xs text-slate-400">{d.current_queue} in queue</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            {/* Doctors */}
+            {/* Doctors on Duty */}
             {hospital.doctors.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl p-5">
-                <h2 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-sky-600" /> Specialists
-                </h2>
-                <div className="space-y-3">
-                  {hospital.doctors.map(doc => (
-                    <div key={doc.id} className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 text-slate-500 font-semibold text-sm">
-                        {doc.name.split(' ').pop()?.charAt(0)}
+              <div className="card p-6 sm:p-7">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-blue-600" />
+                    <h2 className="text-sm font-semibold text-slate-900">Physicians</h2>
+                  </div>
+                  <span className="text-xs text-slate-400">{hospital.doctors.length} listed</span>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {hospital.doctors.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 flex items-start gap-3"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
+                        {doc.name.split(' ').slice(-1)[0]?.charAt(0) ?? 'D'}
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{doc.name}</p>
-                        <p className="text-xs text-slate-500">{doc.qualification} · {doc.experience_years} yrs</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-semibold text-slate-900 truncate">{doc.name}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{doc.qualification}</div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[10px] text-slate-400">{doc.experience_years} yrs exp</span>
+                          {doc.available_today && (
+                            <span className="badge badge-green text-[9px] py-0 px-1.5">
+                              Available today
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      {doc.available_today && (
-                        <span className="ml-auto text-[10px] text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                          Available today
-                        </span>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -148,115 +237,144 @@ export default function HospitalDetailPage() {
             )}
           </div>
 
-          {/* Right column */}
-          <div className="space-y-4">
-            {/* Cost */}
-            {dept && (
-              <div className="bg-white border border-slate-200 rounded-xl p-5">
-                <h2 className="text-sm font-semibold text-slate-900 mb-3">Estimated Cost</h2>
-                <p className="text-2xl font-bold text-slate-900 mb-1">
-                  ₹{dept.consultation_fee_min}–{dept.consultation_fee_max}
-                </p>
-                <p className="text-xs text-slate-500">Consultation fee for {dept.name}</p>
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
-                    Scheme information may be available (Ayushman Bharat, ESI)
-                  </p>
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Consultation Cost */}
+            {activeDept && (
+              <div className="card p-6">
+                <span className="text-xs text-slate-400 block mb-1">Consultation Fee</span>
+                <div className="flex items-baseline gap-1 text-slate-900 mb-1">
+                  <IndianRupee className="w-4 h-4 text-slate-600 self-center" />
+                  <span className="text-2xl font-bold tracking-tight">
+                    {activeDept.consultation_fee_min} to {activeDept.consultation_fee_max}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mb-4">{activeDept.name} department</p>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex items-start gap-2 text-xs text-slate-600">
+                    <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold text-slate-800">Schemes Accepted:</span>
+                      <p className="text-slate-500 text-[11px] mt-0.5">
+                        Ayushman Bharat PM-JAY, ESI, and Delhi Arogya Kosh.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Facilities */}
+            {/* Facilities Tags */}
             {hospital.facilities && hospital.facilities.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl p-5">
-                <h2 className="text-sm font-semibold text-slate-900 mb-3">Facilities</h2>
-                <div className="flex flex-wrap gap-2">
-                  {hospital.facilities.map(f => (
-                    <span key={f} className="text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
-                      {f}
+              <div className="card p-6">
+                <span className="text-xs font-semibold text-slate-900 block mb-3">
+                  Facilities
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {hospital.facilities.map((facility) => (
+                    <span
+                      key={facility}
+                      className="text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-700"
+                    >
+                      {facility}
                     </span>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Disclaimer */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p className="text-xs text-amber-800 flex items-start gap-2">
-                <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                This is a navigation prototype. Queue and cost data are simulated for demonstration purposes.
-              </p>
-            </div>
+            {/* Clean, Non-intrusive Data Notice */}
+            <p className="text-[11px] text-slate-400 px-2 leading-relaxed">
+              Queue counts and wait predictions are generated from synthetic hourly models for demonstration. Emergency cases are triaged immediately upon arrival.
+            </p>
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
 
-function QueueSection({ queue }: { queue: QueueResponse }) {
-  const maxWait = Math.max(...queue.hourly_predictions.map(h => h.estimated_wait_min));
+function QueueForecastSection({ queue }: { queue: QueueResponse }) {
+  const maxWait = Math.max(...queue.hourly_predictions.map((h) => h.estimated_wait_min), 1);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-sky-600" /> Queue & Wait Time
-        </h2>
-        <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full font-medium">
-          Simulated demo data
-        </span>
-      </div>
-
-      {/* Current */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="bg-slate-50 rounded-lg p-3 text-center border border-slate-100">
-          <p className="text-2xl font-bold text-slate-900">{queue.current_queue}</p>
-          <p className="text-xs text-slate-500 mt-0.5">People in queue</p>
-        </div>
-        <div className="bg-sky-50 rounded-lg p-3 text-center border border-sky-100">
-          <p className="text-2xl font-bold text-sky-700">{queue.current_wait_min} min</p>
-          <p className="text-xs text-slate-500 mt-0.5">Est. wait now</p>
-        </div>
-      </div>
-
-      {/* Suggested time */}
-      <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-5">
-        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+    <div className="card p-6 sm:p-7">
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-xs font-semibold text-green-800">Suggested visit time: {queue.suggested_label}</p>
-          <p className="text-xs text-green-700">Estimated wait — {queue.suggested_wait_min} min</p>
+          <h2 className="text-base font-semibold text-slate-900">Queue & Wait Forecast</h2>
+          <span className="text-xs text-slate-400">8:00 AM to 8:00 PM operating hours</span>
+        </div>
+        <span className="badge badge-gray text-[10px]">Simulated Data</span>
+      </div>
+
+      {/* 2 Clean Stat Boxes */}
+      <div className="grid grid-cols-2 gap-4 mb-5">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+          <div className="text-2xl font-bold text-slate-900">{queue.current_queue}</div>
+          <div className="text-xs text-slate-500 mt-0.5">Patients waiting now</div>
+        </div>
+        <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 text-center">
+          <div className="text-2xl font-bold text-blue-700">{queue.current_wait_min} min</div>
+          <div className="text-xs text-blue-600 mt-0.5">Estimated wait time</div>
         </div>
       </div>
 
-      {/* Hourly chart */}
-      <div>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Predicted wait by hour</p>
-        <div className="space-y-2">
-          {queue.hourly_predictions.map(h => {
-            const pct = (h.estimated_wait_min / maxWait) * 100;
-            const isBest = h.hour === queue.suggested_hour;
-            return (
-              <div key={h.hour} className="flex items-center gap-3">
-                <span className="text-xs text-slate-500 w-16 flex-shrink-0">{h.label}</span>
-                <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${isBest ? 'bg-green-500' : pct > 70 ? 'bg-amber-400' : 'bg-sky-400'}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <span className={`text-xs font-medium w-14 text-right flex-shrink-0 ${isBest ? 'text-green-700 font-semibold' : 'text-slate-600'}`}>
-                  {h.estimated_wait_min} min {isBest && '⭐'}
-                </span>
+      {/* Suggested Lowest Wait Alert */}
+      <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 mb-6 flex items-center gap-3">
+        <CalendarCheck className="w-4 h-4 text-emerald-700 shrink-0" />
+        <div className="text-xs">
+          <span className="font-semibold text-emerald-900">
+            Best time to visit: {queue.suggested_label}
+          </span>
+          <span className="text-emerald-700 ml-1.5">
+            (Estimated wait ~{queue.suggested_wait_min} min)
+          </span>
+        </div>
+      </div>
+
+      {/* Hourly Bars */}
+      <div className="space-y-2.5">
+        {queue.hourly_predictions.map((h) => {
+          const pct = Math.min((h.estimated_wait_min / maxWait) * 100, 100);
+          const isBest = h.hour === queue.suggested_hour;
+
+          return (
+            <div key={h.hour} className="flex items-center gap-3 text-xs">
+              <span
+                className={`w-16 shrink-0 text-right ${
+                  isBest ? 'font-semibold text-emerald-700' : 'text-slate-400'
+                }`}
+              >
+                {h.label}
+              </span>
+
+              <div className="bar-track">
+                <div
+                  className={`bar-fill ${
+                    isBest ? 'bar-fill-green' : pct > 65 ? 'bar-fill-amber' : 'bar-fill'
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
               </div>
-            );
-          })}
-        </div>
-      </div>
 
-      <p className="text-[10px] text-slate-400 mt-4">{queue.disclaimer}</p>
+              <span
+                className={`w-14 text-right shrink-0 ${
+                  isBest ? 'font-semibold text-emerald-700' : 'text-slate-600'
+                }`}
+              >
+                {h.estimated_wait_min} min
+              </span>
+
+              {isBest && (
+                <span className="badge badge-green text-[9px] py-0 px-1.5 shrink-0 hidden sm:inline-flex">
+                  Lowest
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

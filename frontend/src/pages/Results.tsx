@@ -1,11 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
-  MapPin, Clock, DollarSign, ChevronRight, ArrowUpDown,
-  Loader2, AlertTriangle, SlidersHorizontal, CheckCircle2
+  MapPin,
+  Clock,
+  IndianRupee,
+  ChevronRight,
+  ArrowUpDown,
+  AlertTriangle,
+  Search,
+  RotateCcw,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { searchHospitals } from '../api';
 import type { SearchResponse, SearchResult } from '../types';
 
@@ -20,18 +25,29 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('rank');
+  const [filterEmergency, setFilterEmergency] = useState(false);
 
-  useEffect(() => {
-    if (!symptom) return;
+  const fetchResults = useCallback(() => {
+    if (!symptom) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
     searchHospitals(symptom)
       .then(setData)
-      .catch(() => setError('Could not load results. Is the backend running?'))
+      .catch(() => {
+        setError('Could not connect to the hospital service. Please verify the backend is running.');
+      })
       .finally(() => setLoading(false));
   }, [symptom]);
 
-  const sorted = [...(data?.results ?? [])].sort((a, b) => {
+  useEffect(() => {
+    fetchResults();
+  }, [fetchResults]);
+
+  const filtered = (data?.results ?? []).filter((r) => !filterEmergency || r.emergency_available);
+  const sorted = [...filtered].sort((a, b) => {
     if (sortKey === 'consultation_fee_min') {
       return (a.consultation_fee_min ?? 9999) - (b.consultation_fee_min ?? 9999);
     }
@@ -39,185 +55,205 @@ export default function Results() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="site-wrapper bg-[#fbfcfd]">
       <Navbar />
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-10 w-full">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
-            <Link to="/" className="hover:text-slate-700">Home</Link>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-slate-900 font-medium">Results</span>
-          </div>
-          {data && (
+
+      <main className="flex-1 page-container max-w-6xl py-16 sm:py-20 pb-28">
+        {/* Navigation Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
+          <Link to="/" className="hover:text-slate-700 transition-colors">Home</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <Link to="/search" className="hover:text-slate-700 transition-colors">Search</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="text-slate-700 font-medium">{data?.routed_department || 'Results'}</span>
+        </nav>
+
+        {/* Search Header */}
+        {data && !loading && (
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 pb-8 border-b border-slate-200">
             <div>
-              <h1 className="text-xl font-bold text-slate-900 mb-1">
-                {data.routed_department}
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="badge badge-blue">{data.routed_department}</span>
                 {data.is_emergency && (
-                  <span className="ml-2 text-xs font-semibold text-white bg-rose-600 px-2 py-0.5 rounded-full align-middle">
-                    EMERGENCY
-                  </span>
+                  <span className="badge badge-red font-semibold">Emergency Priority</span>
                 )}
+                <span className="text-sm text-slate-400">Results for &ldquo;{symptom}&rdquo;</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
+                Hospital Recommendations
               </h1>
-              <p className="text-sm text-slate-500">
-                Showing hospitals for "<span className="italic">{symptom}</span>" — {sorted.length} results
+              <p className="text-sm text-slate-500 mt-2">
+                Showing {sorted.length} hospitals ranked by wait time, distance, and consultation fees.
               </p>
             </div>
-          )}
-        </div>
 
-        {/* Sort bar */}
-        {data && !loading && (
-          <div className="flex items-center gap-2 mb-5 flex-wrap">
-            <SlidersHorizontal className="w-4 h-4 text-slate-400" />
-            <span className="text-xs text-slate-500 mr-1">Sort by:</span>
-            {([
-              ['rank', 'Recommended'],
-              ['distance_km', 'Distance'],
-              ['estimated_wait_min', 'Wait time'],
-              ['consultation_fee_min', 'Cost'],
-            ] as [SortKey, string][]).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setSortKey(key)}
-                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all ${
-                  sortKey === key
-                    ? 'bg-sky-600 text-white border-sky-600'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-sky-300'
-                }`}
-              >
-                <ArrowUpDown className="w-3 h-3" />
-                {label}
-              </button>
-            ))}
+            <Link to="/search" className="btn btn-secondary btn-sm self-start sm:self-auto px-3.5 py-2">
+              <Search className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
+              Change Search
+            </Link>
           </div>
         )}
 
-        {/* Loading */}
+        {/* Filter and Sort Pills */}
+        {data && !loading && sorted.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-slate-400 mr-1.5 flex items-center gap-1">
+                <ArrowUpDown className="w-3 h-3" /> Sort by:
+              </span>
+              {(
+                [
+                  ['rank', 'Recommended'],
+                  ['estimated_wait_min', 'Shortest Wait'],
+                  ['distance_km', 'Closest Distance'],
+                  ['consultation_fee_min', 'Lowest Fee'],
+                ] as [SortKey, string][]
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSortKey(key)}
+                  className={`btn btn-sm ${
+                    sortKey === key ? 'btn-primary' : 'btn-secondary text-slate-600'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setFilterEmergency((prev) => !prev)}
+              className={`btn btn-sm ${
+                filterEmergency ? 'btn-danger' : 'btn-secondary text-slate-600'
+              }`}
+            >
+              Emergency Ready Only
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
-            <Loader2 className="w-6 h-6 animate-spin" />
-            <p className="text-sm">Finding hospitals…</p>
+          <div className="py-24 flex flex-col items-center justify-center text-center">
+            <div className="spinner mb-4" />
+            <p className="text-sm font-medium text-slate-700">Searching hospital queues...</p>
           </div>
         )}
 
-        {/* Error */}
+        {/* Error State */}
         {error && (
-          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-sm text-rose-700 flex items-center gap-3">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-            {error}
+          <div className="card p-8 bg-rose-50/50 border-rose-200 max-w-lg mx-auto my-12 text-center">
+            <AlertTriangle className="w-6 h-6 text-rose-600 mx-auto mb-3" />
+            <h2 className="text-sm font-semibold text-rose-900 mb-1">Failed to load results</h2>
+            <p className="text-xs text-rose-700 mb-4">{error}</p>
+            <button type="button" onClick={fetchResults} className="btn btn-secondary btn-sm mx-auto">
+              <RotateCcw className="w-3.5 h-3.5 mr-1" />
+              Try again
+            </button>
           </div>
         )}
 
-        {/* Results */}
+        {/* Empty State */}
         {!loading && !error && sorted.length === 0 && (
-          <div className="text-center py-20 text-slate-400">
-            <p className="text-sm">No hospitals found. Try a different symptom.</p>
+          <div className="card p-12 text-center max-w-md mx-auto my-12">
+            <Search className="w-6 h-6 text-slate-300 mx-auto mb-3" />
+            <h2 className="text-base font-semibold text-slate-900 mb-1">No hospitals found</h2>
+            <p className="text-xs text-slate-500 mb-5">
+              No matching departments were found for &ldquo;{symptom}&rdquo;. Try another symptom like fever, knee pain, or chest pain.
+            </p>
+            <Link to="/search" className="btn btn-primary btn-sm">
+              Browse Departments
+            </Link>
           </div>
         )}
 
+        {/* Defined, High-Quality Hospital Cards */}
         {!loading && !error && sorted.length > 0 && (
-          <div className="space-y-3">
-            {sorted.map((r) => (
-              <HospitalCard key={r.hospital_id} result={r} onClick={() =>
-                navigate(`/hospital/${r.hospital_id}?department=${encodeURIComponent(r.department)}`)
-              } />
+          <div className="space-y-6">
+            {sorted.map((item) => (
+              <HospitalCard
+                key={item.hospital_id}
+                result={item}
+                onClick={() =>
+                  navigate(
+                    `/hospital/${item.hospital_id}?department=${encodeURIComponent(item.department)}`
+                  )
+                }
+              />
             ))}
           </div>
         )}
       </main>
-      <Footer />
     </div>
   );
 }
 
 function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: () => void }) {
-  const isHighWait = r.estimated_wait_min > 60;
+  const isTopRanked = r.rank === 1;
 
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-slate-200 rounded-xl p-5 hover:border-sky-300 hover:shadow-sm transition-all cursor-pointer group"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      className={`result-card card card-hover cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all bg-white ${
+        isTopRanked ? 'result-card-featured' : ''
+      }`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4 min-w-0">
-          {/* Rank badge */}
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5 ${
-            r.rank === 1 ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-500'
-          }`}>
-            {r.rank}
+      <div className="result-card-layout">
+        <div className="result-card-info">
+          <div className="result-card-title">
+            <span className={`result-rank ${isTopRanked ? 'result-rank-featured' : ''}`}>
+              {String(r.rank).padStart(2, '0')}
+            </span>
+            <div className="min-w-0">
+              <h3>{r.hospital_name}</h3>
+              <p className="result-card-address">
+                <MapPin aria-hidden="true" />
+                <span>{r.address}, {r.city}</span>
+              </p>
+            </div>
           </div>
-
-          <div className="min-w-0">
-            <div className="flex items-center flex-wrap gap-2 mb-1">
-              <h3 className="text-sm font-semibold text-slate-900 group-hover:text-sky-700 transition-colors">
-                {r.hospital_name}
-              </h3>
-              {r.rank === 1 && (
-                <span className="flex items-center gap-1 text-[10px] font-semibold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-2.5 h-2.5" /> Recommended
-                </span>
-              )}
-              {r.emergency_available && (
-                <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
-                  Emergency
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 mb-3 flex items-center gap-1">
-              <MapPin className="w-3 h-3 flex-shrink-0" /> {r.address}, {r.city}
-            </p>
-
-            {/* Explanation */}
-            <p className="text-xs text-slate-600 italic mb-3 leading-relaxed">{r.explanation}</p>
-
-            {/* Metrics row */}
-            <div className="flex flex-wrap gap-4">
-              <Metric icon={MapPin} label="Distance" value={`${r.distance_km.toFixed(1)} km`} />
-              <Metric
-                icon={Clock}
-                label="Est. wait"
-                value={`${r.estimated_wait_min} min`}
-                highlight={isHighWait ? 'warn' : undefined}
-              />
-              <Metric
-                icon={DollarSign}
-                label="Consult fee"
-                value={
-                  r.consultation_fee_min != null
-                    ? `₹${r.consultation_fee_min}–${r.consultation_fee_max}`
-                    : 'N/A'
-                }
-              />
-              <Metric icon={Clock} label="Queue" value={`${r.current_queue} people`} />
-            </div>
+          <div className="result-card-badges">
+            {isTopRanked && <span className="badge badge-blue">Recommended</span>}
+            <span className="badge badge-gray">{r.department}</span>
+            {r.emergency_available && <span className="badge badge-red">24/7 Emergency</span>}
           </div>
         </div>
 
-        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-sky-500 flex-shrink-0 mt-1 transition-colors" />
-      </div>
-    </div>
-  );
-}
+        <div className="result-card-metrics">
+          <div className="result-metric result-metric-wait">
+            <Clock aria-hidden="true" />
+            <span>Estimated wait</span>
+            <strong>{r.estimated_wait_min} <small>min</small></strong>
+          </div>
+          <div className="result-metric">
+            <MapPin aria-hidden="true" />
+            <span>Distance</span>
+            <strong>{r.distance_km.toFixed(1)} <small>km</small></strong>
+          </div>
+          <div className="result-metric">
+            <IndianRupee aria-hidden="true" />
+            <span>Consultation fee</span>
+            <strong>
+              {r.consultation_fee_min ?? 0}–{r.consultation_fee_max ?? 0}
+            </strong>
+          </div>
+        </div>
 
-function Metric({
-  icon: Icon,
-  label,
-  value,
-  highlight,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  highlight?: 'warn';
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <Icon className={`w-3.5 h-3.5 ${highlight === 'warn' ? 'text-amber-500' : 'text-slate-400'}`} />
-      <span className="text-xs text-slate-500">{label}:</span>
-      <span className={`text-xs font-medium ${highlight === 'warn' ? 'text-amber-700' : 'text-slate-800'}`}>
-        {value}
-      </span>
+        <div className="result-card-action">
+          <span>View hospital details</span>
+          <ChevronRight aria-hidden="true" />
+        </div>
+      </div>
     </div>
   );
 }

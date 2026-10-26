@@ -1,230 +1,360 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRef, useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-  Search,
-  MapPin,
-  Clock,
+  Activity,
   AlertTriangle,
-  ChevronRight,
-  Stethoscope,
-  ShieldCheck,
-  BarChart2,
   ArrowRight,
+  CalendarCheck,
+  Clock3,
+  HeartPulse,
+  MapPin,
+  Search,
+  ShieldCheck,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import hospitalWard from '../assets/hospital-ward.png';
 
-const QUICK_SYMPTOMS = [
-  'Knee pain',
-  'Skin rash',
-  'Fever',
-  'Eye problem',
-  'Dental pain',
-  'Chest pain',
+const QUICK_SYMPTOMS = ['Knee pain', 'Fever', 'Chest pain', 'Skin rash', 'Eye problem', 'Dental pain'];
+
+const METRICS = [
+  { value: '12', label: 'Hospitals listed' },
+  { value: '26', label: 'Doctor profiles' },
+  { value: '7', label: 'Care specialties' },
+  { value: '13 hours', label: 'Daily forecasts' },
 ];
 
-const HOW_IT_WORKS = [
+const SPECIALTIES = [
+  'General medicine',
+  'Orthopedics',
+  'Cardiology',
+  'Dermatology',
+  'Eye care',
+  'Dentistry',
+  'Emergency',
+];
+
+const SAMPLE_DOCTORS = [
+  { name: 'Dr. Priya Mehta', specialty: 'Cardiology', initials: 'PM' },
+  { name: 'Dr. Meera Singh', specialty: 'Orthopedics', initials: 'MS' },
+  { name: 'Dr. Neha Joshi', specialty: 'Ophthalmology', initials: 'NJ' },
+];
+
+const STEPS = [
   {
-    icon: Stethoscope,
-    title: 'Describe your need',
-    body: 'Tell us your symptom or the type of care you need. We map it to the right department.',
+    number: '01',
+    title: 'Tell us what’s going on',
+    description: 'Search in everyday language. We’ll suggest a medical department to explore.',
+    icon: Search,
   },
   {
-    icon: BarChart2,
-    title: 'See live estimates',
-    body: 'Compare hospitals by distance, estimated wait time, and cost — all in one view.',
+    number: '02',
+    title: 'Compare nearby hospitals',
+    description: 'Review estimated waits, distance, and consultation fees in one place.',
+    icon: Activity,
   },
   {
-    icon: Clock,
-    title: 'Choose the best time',
-    body: 'View hourly predicted queue sizes and pick the slot that works best for you.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Navigate with confidence',
-    body: 'Get directions, facility info, and doctor availability before you leave home.',
+    number: '03',
+    title: 'Choose a time that works',
+    description: 'See how estimated queues change through the day before you set out.',
+    icon: CalendarCheck,
   },
 ];
 
 export default function Home() {
   const [symptom, setSymptom] = useState('');
   const navigate = useNavigate();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  function handleSearch(e: FormEvent) {
-    e.preventDefault();
-    if (!symptom.trim()) return;
-    navigate(`/results?symptom=${encodeURIComponent(symptom.trim())}`);
+  function handleSearch(event: FormEvent) {
+    event.preventDefault();
+    const query = symptom.trim();
+    if (!query) {
+      searchInputRef.current?.focus();
+      return;
+    }
+    navigate(`/results?symptom=${encodeURIComponent(query)}`);
+  }
+
+  function handleQuickSelect(value: string) {
+    navigate(`/results?symptom=${encodeURIComponent(value)}`);
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="site-wrapper bg-white text-slate-900">
       <Navbar />
 
-      {/* Hero */}
-      <section className="bg-white border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
-              Find the right hospital,{' '}
-              <span className="text-sky-600">at the right time.</span>
-            </h1>
+      <main className="flex-1">
+        <section className="home-hero">
+          <svg
+            className="home-ecg"
+            viewBox="0 0 1600 420"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              className="home-ecg-track"
+              d="M0 210 H120 L145 203 L160 216 L180 150 L202 254 L222 210 H380 L405 203 L420 216 L440 150 L462 254 L482 210 H640 L665 203 L680 216 L700 150 L722 254 L742 210 H900 L925 203 L940 216 L960 150 L982 254 L1002 210 H1160 L1185 203 L1200 216 L1220 150 L1242 254 L1262 210 H1420 L1445 203 L1460 216 L1480 150 L1502 254 L1522 210 H1600"
+            />
+            <path
+              className="home-ecg-pulse"
+              pathLength="1600"
+              d="M0 210 H120 L145 203 L160 216 L180 150 L202 254 L222 210 H380 L405 203 L420 216 L440 150 L462 254 L482 210 H640 L665 203 L680 216 L700 150 L722 254 L742 210 H900 L925 203 L940 216 L960 150 L982 254 L1002 210 H1160 L1185 203 L1200 216 L1220 150 L1242 254 L1262 210 H1420 L1445 203 L1460 216 L1480 150 L1502 254 L1522 210 H1600"
+            />
+          </svg>
+          <div className="page-container home-hero-grid">
+            <div className="home-hero-copy">
+              <span className="eyebrow">
+                <span className="eyebrow-mark" />
+                Healthcare navigation, made clearer
+              </span>
+              <h1>
+                A calmer way to
+                <br />
+                <span>find your next step.</span>
+              </h1>
+              <p className="home-intro">
+                Compare nearby hospitals, estimated wait times, and consultation fees before you
+                head out.
+              </p>
 
-            <p className="text-lg text-slate-500 mb-10 leading-relaxed">
-              QueueLess helps you compare hospitals by department, wait time, distance, and cost — so you can make an informed decision before you leave home.
-            </p>
-
-            {/* Search bar */}
-            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 max-w-xl">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <form onSubmit={handleSearch} className="home-search">
+                <label className="sr-only" htmlFor="home-symptom">
+                  Search by symptom
+                </label>
+                <Search className="home-search-icon" aria-hidden="true" />
                 <input
+                  ref={searchInputRef}
+                  id="home-symptom"
                   type="text"
                   value={symptom}
-                  onChange={(e) => setSymptom(e.target.value)}
-                  placeholder="e.g. knee pain, skin rash, fever..."
-                  className="w-full pl-10 pr-4 py-3.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-white placeholder-slate-400 shadow-sm"
+                  onChange={(event) => setSymptom(event.target.value)}
+                  placeholder="Try “knee pain” or “fever”"
                 />
-              </div>
-              <button
-                type="submit"
-                className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white px-6 py-3.5 rounded-xl font-medium text-sm transition-colors shadow-sm whitespace-nowrap"
-              >
-                Find hospitals
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-
-            {/* Quick symptoms */}
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="text-xs text-slate-400 flex items-center mr-1">Quick select:</span>
-              {QUICK_SYMPTOMS.map((label) => (
-                <button
-                  key={label}
-                  onClick={() => navigate(`/results?symptom=${encodeURIComponent(label)}`)}
-                  className="text-xs text-slate-600 hover:text-sky-700 bg-slate-100 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 px-3 py-1.5 rounded-full transition-colors"
-                >
-                  {label}
+                <button type="submit" className="btn btn-primary home-search-button">
+                  Find care
+                  <ArrowRight aria-hidden="true" />
                 </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+              </form>
 
-      {/* Emergency banner */}
-      <section className="bg-rose-50 border-b border-rose-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-4 h-4 text-rose-600" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-rose-900">Medical emergency?</p>
-              <p className="text-xs text-rose-600">Find the nearest emergency-ready hospital with available capacity.</p>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate('/emergency')}
-            className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-          >
-            Emergency mode
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-        <div className="mb-10">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">How QueueLess works</h2>
-          <p className="text-slate-500 text-sm">Four steps from symptom to hospital visit.</p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {HOW_IT_WORKS.map((item, i) => (
-            <div key={i} className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-sm transition-shadow">
-              <div className="w-10 h-10 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center mb-4">
-                <item.icon className="w-5 h-5 text-sky-600" />
+              <div className="home-quick-search">
+                <span>Popular searches</span>
+                <div className="home-quick-search-list">
+                  {QUICK_SYMPTOMS.map((item) => (
+                    <button key={item} type="button" onClick={() => handleQuickSelect(item)}>
+                      {item}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Step {i + 1}</p>
-              <h3 className="text-sm font-semibold text-slate-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">{item.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Feature highlights */}
-      <section className="bg-white border-t border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">
-                Compare hospitals the smart way
-              </h2>
-              <p className="text-slate-500 leading-relaxed mb-6">
-                Instead of calling every hospital or guessing the wait, QueueLess gives you a ranked list based on distance, department availability, queue length, and consultation cost.
-              </p>
-              <ul className="space-y-3">
-                {[
-                  { icon: MapPin, text: 'Distance from your location' },
-                  { icon: Clock, text: 'Estimated queue wait time' },
-                  { icon: BarChart2, text: 'Hourly queue predictions' },
-                  { icon: ShieldCheck, text: 'Cost and scheme information' },
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-slate-700">
-                    <div className="w-6 h-6 rounded-md bg-sky-50 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-3.5 h-3.5 text-sky-600" />
-                    </div>
-                    {item.text}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => navigate('/search')}
-                className="mt-8 inline-flex items-center gap-2 text-sm text-sky-600 hover:text-sky-700 font-medium"
-              >
-                Try it now <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
 
-            {/* Visual card preview */}
-            <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 space-y-3">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-4">Sample result — Orthopedics</p>
-              {[
-                { name: 'AIIMS New Delhi', wait: '42 min', dist: '3.2 km', fee: '₹300–700', rank: 1, badge: 'Best match' },
-                { name: 'Safdarjung Hospital', wait: '55 min', dist: '3.8 km', fee: '₹150–400', rank: 2, badge: null },
-                { name: 'Max Saket', wait: '28 min', dist: '7.1 km', fee: '₹700–1800', rank: 3, badge: null },
-              ].map((h) => (
-                <div key={h.name} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center flex-shrink-0">
-                      {h.rank}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-slate-900 truncate">{h.name}</p>
-                        {h.badge && (
-                          <span className="hidden sm:inline text-[10px] font-semibold text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded-full">
-                            {h.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{h.dist} · {h.fee}</p>
-                    </div>
+            <aside className="care-preview" aria-label="Example hospital comparison">
+              <div className="care-preview-top">
+                <div>
+                  <span className="preview-kicker">A clearer care plan</span>
+                  <h2>Make an informed choice.</h2>
+                </div>
+                <div className="preview-icon">
+                  <ShieldCheck aria-hidden="true" />
+                </div>
+              </div>
+
+              <div className="preview-location">
+                <MapPin aria-hidden="true" />
+                Delhi-NCR hospitals
+                <span className="preview-live"><span /> 12 facilities</span>
+              </div>
+
+              <div className="preview-hospital preview-hospital-featured">
+                <div className="preview-hospital-heading">
+                  <div className="preview-hospital-mark">A</div>
+                  <div>
+                    <h3>AIIMS New Delhi</h3>
+                    <p>Ansari Nagar East</p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-semibold text-slate-900">{h.wait}</p>
-                    <p className="text-xs text-slate-400">est. wait</p>
+                  <span className="preview-recommended">Recommended</span>
+                </div>
+                <div className="preview-metrics">
+                  <div>
+                    <Clock3 aria-hidden="true" />
+                    <span><strong>42 min</strong>estimated wait</span>
+                  </div>
+                  <div>
+                    <MapPin aria-hidden="true" />
+                    <span><strong>3.2 km</strong>approx. distance</span>
                   </div>
                 </div>
+              </div>
+
+              <div className="preview-forecast">
+                <div className="preview-forecast-heading">
+                  <div>
+                    <CalendarCheck aria-hidden="true" />
+                    <span>Plan your visit</span>
+                  </div>
+                  <span className="preview-best-time">Lowest estimate · 2 PM</span>
+                </div>
+                <div className="preview-forecast-track" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span className="preview-forecast-best" />
+                  <span />
+                  <span />
+                </div>
+                <div className="preview-forecast-labels">
+                  <span>9 AM</span>
+                  <span>12 PM</span>
+                  <span>3 PM</span>
+                  <span>6 PM</span>
+                </div>
+              </div>
+              <p className="preview-disclaimer">Wait times are estimates based on simulated queue patterns.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section className="home-metrics" aria-label="QueueLess at a glance">
+          <div className="page-container home-metrics-grid">
+            {METRICS.map((metric) => (
+              <div className="home-metric" key={metric.label}>
+                <strong>{metric.value}</strong>
+                <span>{metric.label}</span>
+              </div>
+            ))}
+            <Link to="/search" className="home-metrics-link">
+              Explore hospitals <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+
+        <section className="home-emergency">
+          <div className="page-container">
+            <div className="emergency-notice">
+              <div className="emergency-notice-copy">
+                <span className="emergency-notice-icon"><AlertTriangle aria-hidden="true" /></span>
+                <div>
+                  <strong>Need emergency help?</strong>
+                  <p>For a life-threatening emergency, call 108 or 112 now.</p>
+                </div>
+              </div>
+              <Link to="/emergency" className="emergency-notice-link">
+                Emergency information <ArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="care-network-section">
+          <div className="page-container care-network-grid">
+            <div className="care-network-image-wrap">
+              <img
+                className="care-network-image"
+                src={hospitalWard}
+                alt="A bright, modern hospital ward with patient beds and blue privacy curtains"
+                loading="lazy"
+              />
+              <div className="care-network-image-shade" />
+              <div className="care-network-image-caption">
+                <span><HeartPulse aria-hidden="true" /></span>
+                <div>
+                  <strong>Care, closer to home</strong>
+                  <p>Explore facilities across Delhi-NCR</p>
+                </div>
+              </div>
+              <div className="care-network-image-note">
+                <ShieldCheck aria-hidden="true" />
+                <span>Compare care with confidence</span>
+              </div>
+            </div>
+
+            <div className="care-network-content">
+              <span className="section-kicker">Your local care network</span>
+              <h2>More options. A little more clarity.</h2>
+              <p className="care-network-intro">
+                Explore hospital facilities, browse doctor profiles, and find the specialty that
+                fits your next step.
+              </p>
+
+              <div className="care-network-counts">
+                <div><strong>12</strong><span>hospitals</span></div>
+                <div><strong>26</strong><span>doctor profiles</span></div>
+                <div><strong>7</strong><span>specialties</span></div>
+              </div>
+
+              <div className="care-network-specialties">
+                <h3>Browse specialties</h3>
+                <div>
+                  {SPECIALTIES.map((specialty) => (
+                    <span key={specialty}>{specialty}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="care-network-doctors">
+                <div className="care-network-doctors-heading">
+                  <h3>Example doctor profiles</h3>
+                  <span>Demo directory</span>
+                </div>
+                {SAMPLE_DOCTORS.map((doctor) => (
+                  <div className="care-network-doctor" key={doctor.name}>
+                    <span className="care-network-doctor-avatar">{doctor.initials}</span>
+                    <strong>{doctor.name}</strong>
+                    <span>{doctor.specialty}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link to="/search" className="care-network-link">
+                Explore hospitals and departments <ArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="home-steps-section">
+          <div className="page-container">
+            <div className="section-heading">
+              <span className="section-kicker">Simple by design</span>
+              <h2>From a question to a clearer plan.</h2>
+              <p>Useful information for planning care, without the noise.</p>
+            </div>
+            <div className="home-steps-grid">
+              {STEPS.map(({ number, title, description, icon: Icon }) => (
+                <article className="home-step-card" key={number}>
+                  <div className="home-step-top">
+                    <span className="home-step-icon"><Icon aria-hidden="true" /></span>
+                    <span className="home-step-number">{number}</span>
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </article>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <Footer />
+        <section className="home-final-cta">
+          <div className="page-container home-final-cta-inner">
+            <div>
+              <span className="section-kicker">Start with what you know</span>
+              <h2>Find care near you.</h2>
+              <p>Search symptoms or browse departments to compare available hospitals.</p>
+            </div>
+            <Link to="/search" className="btn btn-primary btn-lg">
+              Browse hospitals <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="page-container site-footer-inner">
+          <Link to="/" className="site-footer-brand">QueueLess</Link>
+          <p>Hospital navigation and simulated queue estimates.</p>
+          <Link to="/emergency">In an emergency, call 108 or 112.</Link>
+        </div>
+      </footer>
     </div>
   );
 }

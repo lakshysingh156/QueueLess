@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
+import OverviewPage from './pages/OverviewPage';
 import SearchPage from './pages/SearchPage';
 import Results from './pages/Results';
 import HospitalDetail from './pages/HospitalDetail';
@@ -11,6 +12,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/overview" element={<OverviewPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/results" element={<Results />} />
         <Route path="/hospital/:id" element={<HospitalDetail />} />
