@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Search, ArrowRight, Activity, Heart, Eye, Smile, AlertTriangle, ShieldCheck } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import LocationPicker from '../components/LocationPicker';
+import { getSearchLocation, withSearchLocation } from '../searchLocation';
 
 const CLINICAL_CATEGORIES = [
   {
@@ -56,18 +58,33 @@ const CLINICAL_CATEGORIES = [
 ];
 
 export default function SearchPage() {
-  const [symptom, setSymptom] = useState('');
+  const location = useLocation();
+  const [symptom, setSymptom] = useState(
+    () => new URLSearchParams(location.search).get('symptom') || '',
+  );
   const navigate = useNavigate();
+  const searchLocation = getSearchLocation(location.state);
+
+  function updateLocation(nextLocation: typeof searchLocation) {
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: withSearchLocation(location.state, nextLocation),
+    });
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const query = symptom.trim();
     if (!query) return;
-    navigate(`/results?symptom=${encodeURIComponent(query)}`);
+    navigate(`/results?symptom=${encodeURIComponent(query)}`, {
+      state: withSearchLocation(location.state, searchLocation),
+    });
   }
 
   function handleSelect(dept: string) {
-    navigate(`/results?symptom=${encodeURIComponent(dept)}`);
+    navigate(`/results?symptom=${encodeURIComponent(dept)}`, {
+      state: withSearchLocation(location.state, searchLocation),
+    });
   }
 
   return (
@@ -84,6 +101,10 @@ export default function SearchPage() {
           <p className="text-base text-slate-500 leading-relaxed">
             Search by symptom or select a medical specialty below.
           </p>
+        </div>
+
+        <div className="mb-5 max-w-4xl">
+          <LocationPicker value={searchLocation} onChange={updateLocation} />
         </div>
 
         {/* Clean Search Console with Guaranteed Space (No Overlap) */}

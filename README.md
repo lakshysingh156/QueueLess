@@ -9,6 +9,7 @@ QueueLess is an intelligent healthcare navigation platform that assists patients
 - **Symptom-to-Department Routing**: Deterministic rule-based engine mapping natural symptom descriptions (knee pain, fever, chest pain, rash, eye discomfort, toothache) to medical departments.
 - **Explainable Recommendation Scoring**: Deterministic multi-criteria scoring algorithm weighting wait time (40%), physical distance (30%), and consultation cost (30%).
 - **Hourly Queue Predictions**: 13-hour forecast window (8:00 AM to 8:00 PM) scaled per hospital, with automated identification of the lowest-wait arrival slot.
+- **Location-Aware Search**: Visitors can explicitly share their device location or choose an approximate area across Delhi-NCR, Chandigarh, and Patiala. Results are limited to a 50 km radius and distances are straight-line estimates.
 - **Emergency Priority Workflow**: Dedicated safety mode with one-tap dialing for **108** (Ambulance) and **112** (National Emergency), filtering for 24/7 accredited emergency trauma centers.
 - **Clinical Profiles**: Comprehensive hospital detail pages displaying departments, consulting fee ranges, physician credentials, facility accreditations, and coverage under Indian healthcare schemes (Ayushman Bharat PM-JAY, ESI, Delhi Arogya Kosh).
 - **Fernand-Inspired Craft & Aesthetics**: Clean, calm, high-contrast healthcare design system built with Tailwind CSS, custom design tokens, and a procedural 3D wireframe terrain canvas. Zero emojis, zero artificial decoration, and zero unsupported diagnostic claims.
@@ -49,8 +50,8 @@ QueueLess/
 │   │       ├── search.py     Symptom routing & recommendation scoring
 │   │       └── queue.py      Hourly queue prediction & lowest-wait calculation
 │   ├── tests/
-│   │   └── test_unit.py    Pytest suite (20 unit tests, 100% pass)
-│   ├── seed.py             Database seeder (12 Delhi-NCR hospitals)
+│   │   └── test_unit.py    Pytest suite (21 unit tests)
+│   ├── seed.py             Database seeder (16 hospitals across Delhi-NCR, Chandigarh, and Patiala)
 │   └── requirements.txt
 └── docs/
     ├── ARCHITECTURE.md     System architecture, data flows, and ER diagrams
@@ -78,7 +79,7 @@ python -m venv venv
 # Install dependencies
 pip install -r requirements.txt
 
-# Seed demonstration database (12 Delhi-NCR hospitals)
+# Add any missing demonstration hospitals and schemes (safe to rerun)
 python seed.py
 
 # Start FastAPI server on port 8000
@@ -115,7 +116,7 @@ cd backend
 .\venv\Scripts\pytest tests/ -v
 ```
 
-Expected result: **20 passed** covering symptom routing, great-circle haversine calculation, weighted scoring logic, queue conversion, and multiplier bounds.
+Expected result: **21 passed** covering symptom routing, local-radius filtering, great-circle haversine calculation, weighted scoring logic, queue conversion, and multiplier bounds.
 
 ### Run Frontend Production Build
 
@@ -141,5 +142,6 @@ Expected result: **Built in ~1s with 0 errors**.
 ## Academic Scope & Limitations Disclosure
 
 - **Simulated Queue Data**: Real-time hospital queue APIs are not publicly accessible in India. Queue counts and wait times are generated using synthetic baseline demand patterns scaled per facility. This is explicitly disclosed across all user-facing views.
+- **Location and Coverage**: Device location is requested only after the visitor selects “Use my location.” Manual area choices use approximate city-centre coordinates. The directory currently covers Delhi-NCR, Chandigarh, and Patiala; searches show hospitals within 50 km. Displayed distances are not road travel times. Punjab/Chandigarh additions have no verified phone, doctor, fee, or facility records; confirm details with the hospital. The seed command adds missing demo records without deleting existing data.
 - **Non-Diagnostic Notice**: QueueLess provides routing and directional guidance only. It does not perform clinical diagnosis or replace medical practitioners.
 - **Authentication**: Registration and sign-in interfaces demonstrate the user journey; server-side JWT issuance and password hashing are identified as future production milestones.

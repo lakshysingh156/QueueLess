@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, Phone, ChevronRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import LocationPicker from '../components/LocationPicker';
+import { getSearchLocation, withSearchLocation } from '../searchLocation';
 
 const EMERGENCY_CONDITIONS = [
   'Severe chest pain',
@@ -14,16 +16,29 @@ const EMERGENCY_CONDITIONS = [
 
 export default function Emergency() {
   const [symptom, setSymptom] = useState('');
+  const routeLocation = useLocation();
   const navigate = useNavigate();
+  const searchLocation = getSearchLocation(routeLocation.state);
+
+  function updateLocation(nextLocation: typeof searchLocation) {
+    navigate(routeLocation.pathname, {
+      replace: true,
+      state: withSearchLocation(routeLocation.state, nextLocation),
+    });
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const query = symptom.trim() || 'emergency';
-    navigate(`/results?symptom=${encodeURIComponent(query)}`);
+    navigate(`/results?symptom=${encodeURIComponent(query)}`, {
+      state: withSearchLocation(routeLocation.state, searchLocation),
+    });
   }
 
   function handleQuickRoute(condition: string) {
-    navigate(`/results?symptom=${encodeURIComponent(condition)}`);
+    navigate(`/results?symptom=${encodeURIComponent(condition)}`, {
+      state: withSearchLocation(routeLocation.state, searchLocation),
+    });
   }
 
   return (
@@ -80,8 +95,12 @@ export default function Emergency() {
             Find Emergency Trauma Centers
           </h2>
           <p className="text-xs text-slate-500 mb-6">
-            Filter nearby hospitals with accredited 24/7 emergency departments.
+            View listed hospitals marked for emergency services within 50 km. Call emergency services first if someone may be in immediate danger.
           </p>
+
+          <div className="mb-5">
+            <LocationPicker value={searchLocation} onChange={updateLocation} />
+          </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-6">
             <input

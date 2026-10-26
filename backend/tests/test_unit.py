@@ -112,9 +112,27 @@ def test_haversine_is_symmetric():
 
 class _FakeDept:
     def __init__(self, queue, fee_min, fee_max):
+        self.name = "Orthopedics"
         self.current_queue = queue
         self.consultation_fee_min = fee_min
         self.consultation_fee_max = fee_max
+        self.available = True
+
+
+class _FakeQuery:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def all(self):
+        return self.rows
+
+
+class _FakeSearchDB:
+    def __init__(self, hospitals):
+        self.hospitals = hospitals
+
+    def query(self, _model):
+        return _FakeQuery(self.hospitals)
 
 
 def test_compute_score_lower_is_better():
@@ -135,7 +153,45 @@ def test_compute_score_no_negative():
     from app.routers.search import compute_score
     dept = _FakeDept(queue=0, fee_min=None, fee_max=None)
     score = compute_score(dept, 0.0)
-    assert score >= 0
+    assert score == 15.0
+
+
+def test_search_only_returns_hospitals_within_local_radius():
+    from types import SimpleNamespace
+    from app.routers.search import MAX_SEARCH_DISTANCE_KM, search
+
+    hospitals = [
+        SimpleNamespace(
+            id=1,
+            name="Chandigarh Hospital",
+            address="Sector 12",
+            city="Chandigarh",
+            latitude=30.7649,
+            longitude=76.7753,
+            emergency_available=True,
+            departments=[_FakeDept(queue=20, fee_min=None, fee_max=None)],
+        ),
+        SimpleNamespace(
+            id=2,
+            name="Delhi Hospital",
+            address="New Delhi",
+            city="New Delhi",
+            latitude=28.5672,
+            longitude=77.2100,
+            emergency_available=True,
+            departments=[_FakeDept(queue=20, fee_min=None, fee_max=None)],
+        ),
+    ]
+
+    response = search(
+        symptom="knee pain",
+        lat=30.7333,
+        lon=76.7794,
+        db=_FakeSearchDB(hospitals),
+    )
+
+    assert [item.hospital_name for item in response.results] == ["Chandigarh Hospital"]
+    assert response.results[0].distance_km <= MAX_SEARCH_DISTANCE_KM
 
 
 # ── Queue calculation tests ────────────────────────────────────────────────

@@ -132,6 +132,17 @@ body {
   align-items: center;
 }
 
+.nav-dark .nav-find-care-active {
+  background: #fff;
+  border-color: #fff;
+  color: #15345b;
+}
+
+.nav-dark .nav-find-care-active:hover {
+  background: #eff6ff;
+  border-color: #eff6ff;
+}
+
 /* ── Buttons ────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -398,8 +409,9 @@ body {
     position: relative;
     overflow: hidden;
     background:
-      radial-gradient(ellipse at 84% 18%, rgba(199, 218, 243, 0.52), transparent 34%),
-      linear-gradient(135deg, #f3f7fc 0%, #f7f9fc 58%, #f0f5fb 100%);
+      radial-gradient(ellipse at 82% 16%, rgba(134, 177, 232, 0.38), transparent 35%),
+      radial-gradient(ellipse at 5% 96%, rgba(205, 224, 246, 0.7), transparent 38%),
+      linear-gradient(135deg, #e8f0fb 0%, #f6f9fd 50%, #e5eef9 100%);
   }
 
   .home-hero::after {
@@ -457,7 +469,7 @@ body {
   }
 
   .home-hero-copy h1 {
-    color: #17353b;
+    color: #102b42;
     font-size: clamp(2.6rem, 4.5vw, 4rem);
     font-weight: 600;
     letter-spacing: -0.065em;
@@ -465,7 +477,7 @@ body {
   }
 
   .home-hero-copy h1 span {
-    color: #3268a8;
+    color: #2463a8;
   }
 
   .home-intro {
@@ -567,10 +579,10 @@ body {
   .care-preview {
     position: relative;
     padding: clamp(1.35rem, 3vw, 2rem);
-    border: 1px solid rgba(216, 230, 227, 0.9);
+    border: 1px solid rgba(177, 198, 221, 0.86);
     border-radius: 22px;
     background: rgba(255, 255, 255, 0.89);
-    box-shadow: 0 24px 70px rgba(36, 73, 75, 0.1);
+    box-shadow: 0 28px 80px rgba(24, 56, 91, 0.16), 0 4px 16px rgba(24, 56, 91, 0.06);
     backdrop-filter: blur(8px);
   }
 

@@ -17,17 +17,18 @@ pytest tests/ -v
 
 ### Test Coverage
 
-**`tests/test_unit.py`** — 22 unit tests, no database required.
+**`tests/test_unit.py`** — 21 unit tests, no database required.
 
 | Test | Covers |
 |------|--------|
 | `test_detect_department_*` (×10) | Symptom routing for all departments + emergency + case insensitivity + unknown fallback |
 | `test_haversine_*` (×3) | Same-point (0 km), known real distance, symmetry |
 | `test_compute_score_*` (×3) | Lower-is-better ordering, zero-queue edge case, None fees (no crash) |
+| `test_search_only_returns_hospitals_within_local_radius` | Search results exclude hospitals more than 50 km away |
 | `test_queue_to_wait_*` (×3) | Zero queue (minimum 5 min), positive count, negative input clamped |
 | `test_hospital_multiplier_range` | Multiplier bounded in [0.6, 1.3] for all IDs 1–19 |
 
-### Verified Results (run 2026-10-10)
+### Verified Results (run 2026-10-26)
 
 ```
 tests/test_unit.py::test_detect_department_knee          PASSED
@@ -46,15 +47,16 @@ tests/test_unit.py::test_haversine_is_symmetric          PASSED
 tests/test_unit.py::test_compute_score_lower_is_better   PASSED
 tests/test_unit.py::test_compute_score_zero_queue        PASSED
 tests/test_unit.py::test_compute_score_no_negative       PASSED
+tests/test_unit.py::test_search_only_returns_hospitals_within_local_radius PASSED
 tests/test_unit.py::test_queue_to_wait_zero              PASSED
 tests/test_unit.py::test_queue_to_wait_positive          PASSED
 tests/test_unit.py::test_queue_to_wait_negative          PASSED
 tests/test_unit.py::test_hospital_multiplier_range       PASSED
 
-20 passed in <0.5s
+21 passed
 ```
 
-> Note: These results are from a dry-run verification of the logic. Run `pytest tests/ -v` after installing dependencies to confirm in your environment.
+Run `pytest tests/ -v` after installing dependencies to verify in your environment.
 
 ---
 

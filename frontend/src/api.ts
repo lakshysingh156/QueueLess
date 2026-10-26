@@ -4,8 +4,8 @@ const BASE = '/api';
 
 export async function searchHospitals(
   symptom: string,
-  lat = 28.6139,
-  lon = 77.209
+  lat: number,
+  lon: number
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ symptom, lat: String(lat), lon: String(lon) });
   const res = await fetch(`${BASE}/search/?${params}`);

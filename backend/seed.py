@@ -14,14 +14,6 @@ models.Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
-# Clear existing data
-db.query(models.QueueRecord).delete()
-db.query(models.Doctor).delete()
-db.query(models.Department).delete()
-db.query(models.Hospital).delete()
-db.query(models.Scheme).delete()
-db.commit()
-
 hospitals_data = [
     {
         "name": "All India Institute of Medical Sciences (AIIMS)",
@@ -281,6 +273,82 @@ hospitals_data = [
             {"name": "Dr. Pankaj Gupta", "dept": "Dentistry", "qual": "BDS, MDS Oral Surgery", "exp": 10},
         ],
     },
+    {
+        "name": "Postgraduate Institute of Medical Education and Research (PGIMER)",
+        "address": "Sector 12",
+        "city": "Chandigarh",
+        "latitude": 30.7649,
+        "longitude": 76.7753,
+        "phone": None,
+        "emergency_available": True,
+        "facilities": None,
+        "departments": [
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 34},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 28},
+            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 31},
+            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 20},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 18},
+            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 12},
+        ],
+        "doctors": [],
+    },
+    {
+        "name": "Government Medical College and Hospital, Sector 32",
+        "address": "Sector 32",
+        "city": "Chandigarh",
+        "latitude": 30.7055,
+        "longitude": 76.8015,
+        "phone": None,
+        "emergency_available": True,
+        "facilities": None,
+        "departments": [
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 29},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 24},
+            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 22},
+            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 16},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 15},
+            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 10},
+        ],
+        "doctors": [],
+    },
+    {
+        "name": "Government Rajindra Hospital",
+        "address": "Sangrur Road",
+        "city": "Patiala",
+        "latitude": 30.3439,
+        "longitude": 76.3863,
+        "phone": None,
+        "emergency_available": True,
+        "facilities": None,
+        "departments": [
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 32},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 26},
+            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 24},
+            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 19},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 17},
+            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 11},
+        ],
+        "doctors": [],
+    },
+    {
+        "name": "Mata Kaushalya Hospital",
+        "address": "Lower Mall Road",
+        "city": "Patiala",
+        "latitude": 30.3452,
+        "longitude": 76.4027,
+        "phone": None,
+        "emergency_available": True,
+        "facilities": None,
+        "departments": [
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 23},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 20},
+            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 18},
+            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 14},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 13},
+            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 8},
+        ],
+        "doctors": [],
+    },
 ]
 
 schemes_data = [
@@ -306,7 +374,12 @@ schemes_data = [
 
 # Insert hospitals
 dept_name_map = {}
+added_hospitals = 0
 for h_data in hospitals_data:
+    existing = db.query(models.Hospital).filter_by(name=h_data["name"]).first()
+    if existing:
+        continue
+
     hospital = models.Hospital(
         name=h_data["name"],
         address=h_data["address"],
@@ -319,6 +392,7 @@ for h_data in hospitals_data:
     )
     db.add(hospital)
     db.flush()
+    added_hospitals += 1
 
     dept_objects = {}
     for d in h_data["departments"]:
@@ -349,7 +423,12 @@ for h_data in hospitals_data:
             db.add(doctor)
 
 # Insert schemes
+added_schemes = 0
 for s_data in schemes_data:
+    existing = db.query(models.Scheme).filter_by(name=s_data["name"]).first()
+    if existing:
+        continue
+
     scheme = models.Scheme(
         name=s_data["name"],
         description=s_data["description"],
@@ -357,7 +436,8 @@ for s_data in schemes_data:
         coverage_amount=s_data["coverage_amount"],
     )
     db.add(scheme)
+    added_schemes += 1
 
 db.commit()
 db.close()
-print("✅ Database seeded with 12 hospitals, departments, doctors, and schemes.")
+print(f"Added {added_hospitals} hospitals and {added_schemes} schemes without deleting existing data.")

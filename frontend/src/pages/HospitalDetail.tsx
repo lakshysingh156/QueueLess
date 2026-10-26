@@ -188,7 +188,9 @@ export default function HospitalDetailPage() {
 
                       <div className="text-right shrink-0">
                         <div className="text-xs font-semibold text-slate-800">
-                          ₹{d.consultation_fee_min} to ₹{d.consultation_fee_max}
+                          {d.consultation_fee_min != null && d.consultation_fee_max != null
+                            ? `₹${d.consultation_fee_min} to ₹${d.consultation_fee_max}`
+                            : 'Fee not listed'}
                         </div>
                         <div className="text-[11px] text-slate-400">{d.current_queue} waiting</div>
                       </div>
@@ -246,7 +248,9 @@ export default function HospitalDetailPage() {
                 <div className="flex items-baseline gap-1 text-slate-900 mb-1">
                   <IndianRupee className="w-4 h-4 text-slate-600 self-center" />
                   <span className="text-2xl font-bold tracking-tight">
-                    {activeDept.consultation_fee_min} to {activeDept.consultation_fee_max}
+                    {activeDept.consultation_fee_min != null && activeDept.consultation_fee_max != null
+                      ? `${activeDept.consultation_fee_min} to ${activeDept.consultation_fee_max}`
+                      : 'Not listed'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mb-4">{activeDept.name} department</p>
@@ -255,9 +259,10 @@ export default function HospitalDetailPage() {
                   <div className="flex items-start gap-2 text-xs text-slate-600">
                     <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-slate-800">Schemes Accepted:</span>
+                      <span className="font-semibold text-slate-800">Scheme information:</span>
                       <p className="text-slate-500 text-[11px] mt-0.5">
-                        Ayushman Bharat PM-JAY, ESI, and Delhi Arogya Kosh.
+                        Participation varies by hospital and service. Confirm eligibility directly
+                        with the facility.
                       </p>
                     </div>
                   </div>

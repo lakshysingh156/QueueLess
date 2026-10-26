@@ -41,7 +41,7 @@ export default function Navbar({ dark = false }: NavbarProps) {
             </Link>
             <Link
               to="/emergency"
-              className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 transition-colors font-medium"
+              className={`flex items-center gap-1.5 text-rose-400 hover:text-rose-300 transition-colors font-medium ${isActive('/emergency') ? 'text-rose-300' : ''}`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
               Emergency
@@ -55,7 +55,10 @@ export default function Navbar({ dark = false }: NavbarProps) {
             >
               Sign in
             </Link>
-            <Link to="/search" className="btn btn-primary btn-sm">
+            <Link
+              to="/search"
+              className={`btn btn-primary btn-sm ${isActive('/search') ? 'nav-find-care-active' : ''}`}
+            >
               Find Care
             </Link>
           </div>

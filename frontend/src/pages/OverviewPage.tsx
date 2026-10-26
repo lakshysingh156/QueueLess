@@ -210,7 +210,7 @@ export default function OverviewPage() {
                 Supported clinical departments
               </h2>
               <p className="text-sm text-slate-500">
-                The network covers key secondary and tertiary specialties across Delhi-NCR.
+                The demo directory covers Delhi-NCR, Chandigarh, and Patiala with synthetic queue estimates.
               </p>
             </div>
 
@@ -223,7 +223,7 @@ export default function OverviewPage() {
                   <h3 className="text-base font-semibold text-slate-900 mb-1">{dept.name}</h3>
                   <p className="text-xs text-slate-500 leading-relaxed mb-4">{dept.desc}</p>
                   <Link
-                    to={`/results?symptom=${encodeURIComponent(dept.name)}`}
+                    to={`/search?symptom=${encodeURIComponent(dept.name)}`}
                     className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
                   >
                     View hospitals <ArrowRight className="w-3.5 h-3.5" />
@@ -250,7 +250,7 @@ export default function OverviewPage() {
             </p>
 
             <Link to="/search" className="btn btn-primary btn-lg px-8">
-              Explore Delhi-NCR Hospitals
+              Explore Nearby Hospitals
               <ArrowRight className="w-4 h-4 ml-1.5" />
             </Link>
           </div>

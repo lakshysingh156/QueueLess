@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
   MapPin,
   Clock,
@@ -11,15 +11,19 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import LocationPicker from '../components/LocationPicker';
 import { searchHospitals } from '../api';
 import type { SearchResponse, SearchResult } from '../types';
+import { getSearchLocation, withSearchLocation } from '../searchLocation';
 
 type SortKey = 'rank' | 'distance_km' | 'estimated_wait_min' | 'consultation_fee_min';
 
 export default function Results() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const routeLocation = useLocation();
   const symptom = params.get('symptom') || '';
+  const searchLocation = getSearchLocation(routeLocation.state);
 
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,20 +31,29 @@ export default function Results() {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [filterEmergency, setFilterEmergency] = useState(false);
 
+  function updateLocation(nextLocation: typeof searchLocation) {
+    navigate(`${routeLocation.pathname}${routeLocation.search}`, {
+      replace: true,
+      state: withSearchLocation(routeLocation.state, nextLocation),
+    });
+  }
+
   const fetchResults = useCallback(() => {
     if (!symptom) {
+      setData(null);
+      setError('');
       setLoading(false);
       return;
     }
     setLoading(true);
     setError('');
-    searchHospitals(symptom)
+    searchHospitals(symptom, searchLocation.latitude, searchLocation.longitude)
       .then(setData)
       .catch(() => {
         setError('Could not connect to the hospital service. Please verify the backend is running.');
       })
       .finally(() => setLoading(false));
-  }, [symptom]);
+  }, [symptom, searchLocation.latitude, searchLocation.longitude]);
 
   useEffect(() => {
     fetchResults();
@@ -63,10 +76,20 @@ export default function Results() {
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
           <Link to="/" className="hover:text-slate-700 transition-colors">Home</Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <Link to="/search" className="hover:text-slate-700 transition-colors">Search</Link>
+          <Link
+            to="/search"
+            state={withSearchLocation(routeLocation.state, searchLocation)}
+            className="hover:text-slate-700 transition-colors"
+          >
+            Search
+          </Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
           <span className="text-slate-700 font-medium">{data?.routed_department || 'Results'}</span>
         </nav>
+
+        <div className="mb-8">
+          <LocationPicker value={searchLocation} onChange={updateLocation} />
+        </div>
 
         {/* Search Header */}
         {data && !loading && (
@@ -85,9 +108,16 @@ export default function Results() {
               <p className="text-sm text-slate-500 mt-2">
                 Showing {sorted.length} hospitals ranked by wait time, distance, and consultation fees.
               </p>
+              <p className="mt-1 text-xs text-slate-400">
+                Queue and fee information may be estimated or incomplete. Confirm details with the hospital.
+              </p>
             </div>
 
-            <Link to="/search" className="btn btn-secondary btn-sm self-start sm:self-auto px-3.5 py-2">
+            <Link
+              to="/search"
+              state={withSearchLocation(routeLocation.state, searchLocation)}
+              className="btn btn-secondary btn-sm self-start sm:self-auto px-3.5 py-2"
+            >
               <Search className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
               Change Search
             </Link>
@@ -161,7 +191,8 @@ export default function Results() {
             <Search className="w-6 h-6 text-slate-300 mx-auto mb-3" />
             <h2 className="text-base font-semibold text-slate-900 mb-1">No hospitals found</h2>
             <p className="text-xs text-slate-500 mb-5">
-              No matching departments were found for &ldquo;{symptom}&rdquo;. Try another symptom like fever, knee pain, or chest pain.
+              No nearby match was found for &ldquo;{symptom}&rdquo;. The current directory covers
+              Delhi-NCR, Chandigarh, and Patiala; try one of these search areas or another symptom.
             </p>
             <Link to="/search" className="btn btn-primary btn-sm">
               Browse Departments
@@ -244,7 +275,9 @@ function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: (
             <IndianRupee aria-hidden="true" />
             <span>Consultation fee</span>
             <strong>
-              {r.consultation_fee_min ?? 0}–{r.consultation_fee_max ?? 0}
+              {r.consultation_fee_min != null && r.consultation_fee_max != null
+                ? `${r.consultation_fee_min}–${r.consultation_fee_max}`
+                : 'Not listed'}
             </strong>
           </div>
         </div>

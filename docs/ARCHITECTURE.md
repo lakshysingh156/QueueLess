@@ -40,12 +40,15 @@ QueueLess is a three-tier web application. The frontend is a React single-page a
 
 ```
 User types symptom
+  → Selects an approximate supported area or explicitly shares device location
   → GET /api/search/?symptom=...&lat=...&lon=...
   → SearchResponse { routed_department, is_emergency, results[] }
   → Results page renders ranked HospitalCard components
   → User clicks card → GET /api/hospitals/:id + GET /api/queue/:id
   → HospitalDetail renders queue section with hourly bars
 ```
+
+The selected coordinates are kept in React Router history state rather than the URL and are sent to the search API only when a search is run. Manual area choices use approximate city-centre coordinates. The current hospital dataset covers Delhi-NCR, Chandigarh, and Patiala. Search results are limited to 50 km from the selected location, and distances are straight-line estimates rather than road routes. The database seeder adds missing demo entries by hospital name and does not delete existing records.
 
 ---
 

@@ -17,7 +17,7 @@ import hospitalWard from '../assets/hospital-ward.png';
 const QUICK_SYMPTOMS = ['Knee pain', 'Fever', 'Chest pain', 'Skin rash', 'Eye problem', 'Dental pain'];
 
 const METRICS = [
-  { value: '12', label: 'Hospitals listed' },
+  { value: '16', label: 'Hospitals listed' },
   { value: '26', label: 'Doctor profiles' },
   { value: '7', label: 'Care specialties' },
   { value: '13 hours', label: 'Daily forecasts' },
@@ -72,16 +72,16 @@ export default function Home() {
       searchInputRef.current?.focus();
       return;
     }
-    navigate(`/results?symptom=${encodeURIComponent(query)}`);
+    navigate(`/search?symptom=${encodeURIComponent(query)}`);
   }
 
   function handleQuickSelect(value: string) {
-    navigate(`/results?symptom=${encodeURIComponent(value)}`);
+    navigate(`/search?symptom=${encodeURIComponent(value)}`);
   }
 
   return (
     <div className="site-wrapper bg-white text-slate-900">
-      <Navbar />
+      <Navbar dark />
 
       <main className="flex-1">
         <section className="home-hero">
@@ -163,7 +163,7 @@ export default function Home() {
               <div className="preview-location">
                 <MapPin aria-hidden="true" />
                 Delhi-NCR hospitals
-                <span className="preview-live"><span /> 12 facilities</span>
+                <span className="preview-live"><span /> 12 Delhi-NCR facilities</span>
               </div>
 
               <div className="preview-hospital preview-hospital-featured">
@@ -259,7 +259,7 @@ export default function Home() {
                 <span><HeartPulse aria-hidden="true" /></span>
                 <div>
                   <strong>Care, closer to home</strong>
-                  <p>Explore facilities across Delhi-NCR</p>
+                  <p>Delhi-NCR, Chandigarh, and Patiala</p>
                 </div>
               </div>
               <div className="care-network-image-note">

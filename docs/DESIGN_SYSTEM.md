@@ -31,6 +31,14 @@ The QueueLess design system is inspired by the calm typography, generous whitesp
 
 ---
 
+## Navigation
+
+- Sticky landing-page navigation uses the deep navy surface (`#07101c`) with high-contrast light labels and a blue primary action.
+- Data pages retain the translucent white navigation surface for continuity with their light canvas.
+- Emergency navigation remains rose-colored to keep the action visually distinct.
+
+---
+
 ## Typography
 
 Font family: **Inter**, system-ui, -apple-system, sans-serif.

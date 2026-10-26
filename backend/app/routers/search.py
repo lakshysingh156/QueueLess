@@ -7,6 +7,7 @@ from app.database import get_db
 from app import models
 
 router = APIRouter()
+MAX_SEARCH_DISTANCE_KM = 50.0
 
 # ── Rule-based symptom → department mapping ────────────────────────────────
 # Ordered longest-phrase-first to avoid partial matches swallowing longer ones.
@@ -127,8 +128,11 @@ def compute_score(dept: models.Department, distance_km: float) -> float:
     # Cost: average of min/max, cap at ₹3000
     fee_min = dept.consultation_fee_min or 0
     fee_max = dept.consultation_fee_max or 0
-    avg_fee = (fee_min + fee_max) / 2.0  # fixed: was (0 + fee_max or 0) due to precedence
-    cost_score = min(avg_fee / 3000.0, 1.0) * 100.0
+    if dept.consultation_fee_min is None and dept.consultation_fee_max is None:
+        cost_score = 50.0
+    else:
+        avg_fee = (fee_min + fee_max) / 2.0
+        cost_score = min(avg_fee / 3000.0, 1.0) * 100.0
 
     return (0.4 * wait_score) + (0.3 * distance_score) + (0.3 * cost_score)
 
@@ -219,6 +223,8 @@ def search(
             continue
 
         distance = haversine(lat, lon, hospital.latitude, hospital.longitude)
+        if distance > MAX_SEARCH_DISTANCE_KM:
+            continue
         wait_min = dept.current_queue * 2
         score = compute_score(dept, distance)
 
