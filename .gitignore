@@ -14,6 +14,7 @@ build/
 # Env files
 .env
 backend/.env
+backend/queueless.db
 
 # Editor
 .vscode/

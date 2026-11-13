@@ -1,31 +1,19 @@
-import datetime
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.database import get_db
 from app import models
+from app.queue_estimates import forecast_queue, hospital_demand_multiplier, queue_to_wait
 
 router = APIRouter()
 
 # ── Baseline hourly queue pattern ──────────────────────────────────────────
-# Index = hour of day (0–23). Values represent average queue depth
-# observed in the synthetic dataset for a mid-week day.
+# Index = hour of day (0–23); values form a synthetic demand curve.
 HOURLY_PATTERN: list[int] = [
     5, 3, 2, 2, 3, 8, 20, 45, 68, 72, 60, 48,
     35, 27, 21, 30, 42, 55, 50, 40, 30, 20, 12, 7,
 ]
-
-
-def queue_to_wait(queue_size: int) -> int:
-    """Convert queue depth to estimated wait time in minutes.
-
-    Formula: base_time + 2 min per person.
-    Minimum 5 min (administrative overhead).
-    """
-    if queue_size <= 0:
-        return 5
-    return max(5, queue_size * 2 + 5)
 
 
 def hospital_multiplier(hospital_id: int) -> float:
@@ -33,7 +21,7 @@ def hospital_multiplier(hospital_id: int) -> float:
 
     Returns a value in [0.64, 1.18] based on hospital ID.
     """
-    return round(0.64 + (hospital_id % 10) * 0.06, 2)
+    return hospital_demand_multiplier(hospital_id)
 
 
 # ── Pydantic schemas ───────────────────────────────────────────────────────
@@ -54,6 +42,7 @@ class QueueResponse(BaseModel):
     suggested_label: str
     suggested_wait_min: int
     hourly_predictions: List[HourlyPrediction]
+    estimate_method: str
     disclaimer: str
 
 
@@ -80,13 +69,11 @@ def get_queue(
     )
 
     current_queue: int = dept.current_queue if dept else 25
-    multiplier: float = hospital_multiplier(hospital_id)
-
     # Build hourly predictions for operating hours (8 AM – 8 PM)
     hourly: list[HourlyPrediction] = []
     for h in range(8, 21):
-        q = int(HOURLY_PATTERN[h] * multiplier)
-        w = queue_to_wait(q)
+        q = forecast_queue(h, dept.name if dept else department, hospital_id, HOURLY_PATTERN)
+        w = queue_to_wait(q, dept.name if dept else department, hospital_id)
         hour_display = h if h <= 12 else h - 12
         period = "AM" if h < 12 else "PM"
         label = f"{hour_display}:00 {period}"
@@ -101,13 +88,17 @@ def get_queue(
         hospital_id=hospital_id,
         department=dept.name if dept else department,
         current_queue=current_queue,
-        current_wait_min=queue_to_wait(current_queue),
+        current_wait_min=queue_to_wait(current_queue, dept.name if dept else department, hospital_id),
         suggested_hour=best.hour,
         suggested_label=best.label,
         suggested_wait_min=best.estimated_wait_min,
         hourly_predictions=hourly,
+        estimate_method=(
+            "Wait ≈ 5-minute intake buffer + ceil(60 × queue ÷ assumed "
+            "service capacity per hour)."
+        ),
         disclaimer=(
-            "Wait times are estimated from a synthetic hourly demand baseline "
-            "scaled per hospital. This is not real-time hospital data."
+            "Illustrative estimates use a synthetic hourly demand curve and assumed "
+            "service capacity; they are not based on live hospital data."
         ),
     )

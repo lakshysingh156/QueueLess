@@ -1,5 +1,5 @@
 """
-Seed the database with realistic hospital demo data.
+Seed the database with hospital and clearly labelled synthetic demo data.
 Run from backend/ directory: python seed.py
 """
 import sys
@@ -350,6 +350,67 @@ hospitals_data = [
         "doctors": [],
     },
 ]
+
+# These additional profiles are explicitly synthetic so the expanded directory
+# cannot be mistaken for verified facilities or live availability.
+DEMO_LOCATIONS = [
+    ("Dwarka", "New Delhi", 28.5921, 77.0460, True),
+    ("Rohini", "New Delhi", 28.7380, 77.0820, False),
+    ("Janakpuri", "New Delhi", 28.6219, 77.0878, True),
+    ("Lajpat Nagar", "New Delhi", 28.5677, 77.2433, False),
+    ("Karol Bagh", "New Delhi", 28.6517, 77.1900, True),
+    ("Vasant Vihar", "New Delhi", 28.5600, 77.1600, False),
+    ("Sector 56", "Gurugram", 28.4255, 77.0990, True),
+    ("Sector 14", "Gurugram", 28.4712, 77.0300, False),
+    ("Sector 62", "Noida", 28.6271, 77.3710, True),
+    ("Sector 137", "Noida", 28.5030, 77.4100, False),
+    ("Sector 22", "Chandigarh", 30.7333, 76.7794, True),
+    ("Model Town", "Patiala", 30.3398, 76.3869, False),
+]
+DEMO_DEPARTMENTS = [
+    ("General Medicine", "Internal Medicine", 250, 650),
+    ("Orthopedics", "Bone & Joint", 350, 900),
+    ("Cardiology", "Heart & Vascular", 500, 1400),
+    ("Dermatology", "Skin & Hair", 250, 700),
+    ("Ophthalmology", "Eye Care", 250, 750),
+    ("Dentistry", "Dental & Oral Health", 300, 1000),
+]
+
+for index, (area, city, latitude, longitude, emergency) in enumerate(DEMO_LOCATIONS):
+    department_count = 4 + index % 3
+    departments = [
+        {
+            "name": name,
+            "specialty": specialty,
+            "fee_min": fee_min + (index % 4) * 50,
+            "fee_max": fee_max + (index % 4) * 100,
+            "queue": 8 + (index * 7 + department_index * 11) % 43,
+        }
+        for department_index, (name, specialty, fee_min, fee_max) in enumerate(
+            DEMO_DEPARTMENTS[:department_count]
+        )
+    ]
+    if emergency:
+        departments.append({
+            "name": "Emergency",
+            "specialty": "Emergency Medicine",
+            "fee_min": 500 + (index % 4) * 100,
+            "fee_max": 2500 + (index % 4) * 250,
+            "queue": 5 + (index * 5) % 24,
+        })
+
+    hospitals_data.append({
+        "name": f"QueueLess Demo Care Centre — {area}",
+        "address": f"{area}, {city}",
+        "city": city,
+        "latitude": latitude,
+        "longitude": longitude,
+        "phone": None,
+        "emergency_available": emergency,
+        "facilities": None,
+        "departments": departments,
+        "doctors": [],
+    })
 
 schemes_data = [
     {

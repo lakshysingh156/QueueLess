@@ -1,7 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from app.database import get_db
 from app import models
 
@@ -9,6 +9,8 @@ router = APIRouter()
 
 
 class DepartmentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     specialty: Optional[str]
@@ -17,22 +19,18 @@ class DepartmentOut(BaseModel):
     current_queue: int
     available: bool
 
-    class Config:
-        from_attributes = True
-
-
 class DoctorOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     qualification: Optional[str]
     experience_years: Optional[int]
     available_today: bool
 
-    class Config:
-        from_attributes = True
-
-
 class HospitalListItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     address: str
@@ -42,18 +40,10 @@ class HospitalListItem(BaseModel):
     emergency_available: bool
     departments: List[DepartmentOut]
 
-    class Config:
-        from_attributes = True
-
-
 class HospitalDetail(HospitalListItem):
     phone: Optional[str]
     facilities: Optional[list]
     doctors: List[DoctorOut]
-
-    class Config:
-        from_attributes = True
-
 
 @router.get("/", response_model=List[HospitalListItem])
 def list_hospitals(db: Session = Depends(get_db)):

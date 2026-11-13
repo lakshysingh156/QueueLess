@@ -4,7 +4,7 @@
 
 **Decision:** Use a synthetic hourly demand baseline scaled per hospital rather than real hospital queue data.
 
-**Rationale:** Real hospital queue APIs do not exist publicly in India. Fabricating exact numbers would be misleading. The synthetic approach is honest (clearly labeled), reproducible, and demonstrates the prediction concept.
+**Rationale:** This academic prototype has no verified live hospital queue integration. Fabricating exact numbers would be misleading. The synthetic approach is reproducible and is clearly labelled as illustrative data.
 
 **Trade-off:** Results do not reflect actual hospital conditions. Labeled throughout as "simulated demo data."
 
@@ -36,7 +36,7 @@
 
 **Rationale:** Proper authentication (JWT tokens, password hashing, protected routes, refresh logic) would require significant additional scope and was deprioritized in favor of the core navigation flow.
 
-**Outstanding work:** Backend `/api/auth/register` and `/api/auth/login` endpoints using `passlib` for hashing and JWT for tokens.
+**Outstanding work:** Authentication, saved preferences, and any patient account features require a separate security-reviewed implementation. The prototype does not send, save, or authenticate credentials.
 
 ---
 

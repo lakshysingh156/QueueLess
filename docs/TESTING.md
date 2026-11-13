@@ -1,87 +1,42 @@
-# Testing — QueueLess
+# QueueLess verification
 
-## Backend Tests
+## One-command local run
 
-### Setup
+From the repository root in PowerShell:
 
-```bash
-cd backend
-pip install pytest
+```powershell
+.\scripts\run.ps1
 ```
 
-### Run
+The script checks Python/Node versions, creates the backend virtual environment if needed, installs missing dependencies, seeds the local SQLite demonstration database, and starts the backend and Vite frontend. It reports when both services respond and cleans up its server processes on Ctrl+C. See the root [README](../README.md) for requirements and URLs.
 
-```bash
-pytest tests/ -v
+## Automated checks
+
+```powershell
+npm --prefix frontend run build
+npm --prefix frontend run lint
+Set-Location backend
+.\venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\venv\Scripts\python.exe -m pytest tests -v
 ```
 
-### Test Coverage
+The backend tests cover symptom routing, emergency-phrase handling, coordinate distance and local-radius filtering, wait-estimate consistency, department-specific service capacity, unavailable departments, ranking, and hourly queue calculations.
 
-**`tests/test_unit.py`** — 21 unit tests, no database required.
+## Manual end-to-end smoke test
 
-| Test | Covers |
-|------|--------|
-| `test_detect_department_*` (×10) | Symptom routing for all departments + emergency + case insensitivity + unknown fallback |
-| `test_haversine_*` (×3) | Same-point (0 km), known real distance, symmetry |
-| `test_compute_score_*` (×3) | Lower-is-better ordering, zero-queue edge case, None fees (no crash) |
-| `test_search_only_returns_hospitals_within_local_radius` | Search results exclude hospitals more than 50 km away |
-| `test_queue_to_wait_*` (×3) | Zero queue (minimum 5 min), positive count, negative input clamped |
-| `test_hospital_multiplier_range` | Multiplier bounded in [0.6, 1.3] for all IDs 1–19 |
+1. Start the project with `.\scripts\run.ps1`.
+2. Visit `/` and confirm the hospital preview and forecast load from the local API.
+3. Use **Hospitals** to filter by a city, specialty, or emergency-service flag; open a hospital profile.
+4. Search **knee pain**, select a result, and confirm the search and profile show the same workload-based wait estimate and model explanation.
+5. Search **Difficulty breathing** and confirm the result page provides direct call links and an emergency-routing notice.
+6. Open a hospital profile and verify the hourly queue curve, current estimate, and suggested lowest-estimate hour are visible and explicitly labelled synthetic.
+7. Open the directory and confirm the added QueueLess Demo Care Centre entries are labelled as demo data and can be filtered.
+8. Open `/login`, submit the form, and verify it explicitly says no account is created and no credentials are sent.
+9. Test the menu at a narrow viewport and confirm the directory, symptom search, and emergency pages remain reachable.
 
-### Verified Results (run 2026-10-26)
+## Scope not yet validated
 
-```
-tests/test_unit.py::test_detect_department_knee          PASSED
-tests/test_unit.py::test_detect_department_fever         PASSED
-tests/test_unit.py::test_detect_department_skin_rash     PASSED
-tests/test_unit.py::test_detect_department_eye           PASSED
-tests/test_unit.py::test_detect_department_dental        PASSED
-tests/test_unit.py::test_detect_department_cardiology    PASSED
-tests/test_unit.py::test_detect_department_emergency_chest PASSED
-tests/test_unit.py::test_detect_department_emergency_stroke PASSED
-tests/test_unit.py::test_detect_department_unknown_falls_back PASSED
-tests/test_unit.py::test_detect_department_case_insensitive PASSED
-tests/test_unit.py::test_haversine_same_point            PASSED
-tests/test_unit.py::test_haversine_known_distance        PASSED
-tests/test_unit.py::test_haversine_is_symmetric          PASSED
-tests/test_unit.py::test_compute_score_lower_is_better   PASSED
-tests/test_unit.py::test_compute_score_zero_queue        PASSED
-tests/test_unit.py::test_compute_score_no_negative       PASSED
-tests/test_unit.py::test_search_only_returns_hospitals_within_local_radius PASSED
-tests/test_unit.py::test_queue_to_wait_zero              PASSED
-tests/test_unit.py::test_queue_to_wait_positive          PASSED
-tests/test_unit.py::test_queue_to_wait_negative          PASSED
-tests/test_unit.py::test_hospital_multiplier_range       PASSED
-
-21 passed
-```
-
-Run `pytest tests/ -v` after installing dependencies to verify in your environment.
-
----
-
-## Frontend Build Check
-
-```bash
-cd frontend
-npm run build
-```
-
-Expected output: `✓ built in ~1s` with zero TypeScript errors.
-
-```bash
-npx tsc --noEmit
-```
-
-Expected: no output (zero errors).
-
----
-
-## Not Yet Implemented
-
-- API integration tests (require live PostgreSQL)
-- Frontend component tests (Vitest + React Testing Library)
-- End-to-end tests (Playwright)
-- Authentication backend tests (auth is prototype-only UI)
-
-These are identified as the next testing milestone.
+- Automated browser/end-to-end tests across browsers and devices
+- Accessibility audit with assistive technology
+- Production deployment, migration, authentication, and security testing
+- Validation against real hospitals: the dataset and queue model are demonstration-only

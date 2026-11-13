@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.database import get_db
 from app import models
+from app.queue_estimates import queue_to_wait
 
 router = APIRouter()
 MAX_SEARCH_DISTANCE_KM = 50.0
@@ -64,8 +65,9 @@ SYMPTOM_MAP: list[tuple[str, str]] = [
 
 EMERGENCY_KEYWORDS: frozenset[str] = frozenset({
     "severe chest pain", "heart attack", "unconscious", "stroke",
-    "accident", "breathing difficulty", "severe bleeding", "seizure",
-    "emergency", "not responding", "collapsed",
+    "accident", "breathing difficulty", "difficulty breathing", "shortness of breath",
+    "severe bleeding", "bleeding heavily", "seizure", "head injury",
+    "emergency", "not responding", "collapsed", "unresponsive",
 })
 
 
@@ -106,20 +108,21 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         * math.cos(math.radians(lat2))
         * math.sin(dlon / 2) ** 2
     )
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    a = min(1.0, max(0.0, a))
+    c = 2 * math.asin(math.sqrt(a))
     return round(R * c, 2)
 
 
 # ── Recommendation scoring ─────────────────────────────────────────────────
 
-def compute_score(dept: models.Department, distance_km: float) -> float:
+def compute_score(dept: models.Department, distance_km: float, hospital_id: int = 1) -> float:
     """Lower score = better ranking.
 
     Weights: 40% wait, 30% distance, 30% cost.
     All components normalised 0–100 before weighting.
     """
-    # Wait: 2 min/person, cap at 120 min
-    wait_min = dept.current_queue * 2
+    # Workload-based wait estimate, capped before ranking normalization.
+    wait_min = queue_to_wait(dept.current_queue, dept.name, hospital_id)
     wait_score = min(wait_min / 120.0, 1.0) * 100.0
 
     # Distance: cap at 50 km
@@ -214,19 +217,19 @@ def search(
                 continue
             # Use the emergency dept if available, otherwise first dept
             dept = dept or next((d for d in hospital.departments if d.name == "Emergency"), None)
-            dept = dept or (hospital.departments[0] if hospital.departments else None)
+            dept = dept or next((d for d in hospital.departments if d.available), None)
         else:
             if not dept:
                 continue
 
-        if dept is None:
+        if dept is None or not dept.available:
             continue
 
         distance = haversine(lat, lon, hospital.latitude, hospital.longitude)
         if distance > MAX_SEARCH_DISTANCE_KM:
             continue
-        wait_min = dept.current_queue * 2
-        score = compute_score(dept, distance)
+        wait_min = queue_to_wait(dept.current_queue, dept.name, hospital.id)
+        score = compute_score(dept, distance, hospital.id)
 
         raw.append({
             "hospital_id": hospital.id,

@@ -1,11 +1,15 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/queueless"
+    DATABASE_URL: str = f"sqlite:///{(BACKEND_DIR / 'queueless.db').as_posix()}"
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", extra="ignore")
 
 
 settings = Settings()

@@ -11,30 +11,33 @@ FastAPI Application (Python)
        │
        │  SQLAlchemy ORM
        ▼
-PostgreSQL Database
+SQLite demonstration database (default)
 ```
 
-QueueLess is a three-tier web application. The frontend is a React single-page application served by Vite's dev server. In production it would be built to static files and served by a web server (e.g. Nginx). The backend is a FastAPI application. The database is PostgreSQL accessed via SQLAlchemy.
+QueueLess is a three-tier academic prototype. The frontend is a React single-page application served by Vite's development server. The backend is a FastAPI application. The default local database is SQLite so a fresh clone can run without a separate database service. `DATABASE_URL` can select another SQLAlchemy-supported database.
+
+On Windows, `.\scripts\run.ps1` prepares local dependencies and seed data, starts both development servers, checks readiness, and stops the services on Ctrl+C.
 
 ---
 
 ## Frontend
 
-**Framework:** React 18 + TypeScript + Vite
+**Framework:** React 19 + TypeScript + Vite
 **Styling:** Tailwind CSS v4 + inline styles for the dark hero
-**Routing:** React Router v6 (client-side)
+**Routing:** React Router v7 (client-side)
 **HTTP:** Fetch API via `src/api.ts`
 
 ### Pages
 
 | Route | Component | Purpose |
 |-------|-----------|---------|
-| `/` | `Home.tsx` | Landing page with cinematic dark hero, 3D wireframe terrain canvas, and Fernand-style interactive preview |
-| `/search` | `SearchPage.tsx` | Free-text symptom input + department directory |
+| `/` | `Home.tsx` | Landing page with a live API-backed demo recommendation and forecast |
+| `/hospitals` | `HospitalsPage.tsx` | Searchable directory with city, department, and emergency-service filters |
+| `/search` | `SearchPage.tsx` | Free-text symptom input + specialty shortcuts |
 | `/results` | `Results.tsx` | Ranked hospital list with sort/filter and explainable scores |
 | `/hospital/:id` | `HospitalDetail.tsx` | Full hospital profile with hourly queue chart |
 | `/emergency` | `Emergency.tsx` | Emergency care mode with 108/112 call buttons |
-| `/login` | `Login.tsx` | Sign in / sign up (demonstration UI with transparent academic disclaimer) |
+| `/login` | `Login.tsx` | Sign-in visual prototype; no credentials are sent or stored |
 
 ### Data flow
 
@@ -44,11 +47,11 @@ User types symptom
   → GET /api/search/?symptom=...&lat=...&lon=...
   → SearchResponse { routed_department, is_emergency, results[] }
   → Results page renders ranked HospitalCard components
-  → User clicks card → GET /api/hospitals/:id + GET /api/queue/:id
+  → User clicks card   → GET /api/hospitals/:id + GET /api/queue/:id?department=...
   → HospitalDetail renders queue section with hourly bars
 ```
 
-The selected coordinates are kept in React Router history state rather than the URL and are sent to the search API only when a search is run. Manual area choices use approximate city-centre coordinates. The current hospital dataset covers Delhi-NCR, Chandigarh, and Patiala. Search results are limited to 50 km from the selected location, and distances are straight-line estimates rather than road routes. The database seeder adds missing demo entries by hospital name and does not delete existing records.
+The selected coordinates are kept in React Router history state rather than the URL and are sent to the search API only when a search is run. Manual area choices use approximate city-centre coordinates. The seed includes 16 example hospital records and 12 clearly named synthetic QueueLess demo locations across Delhi-NCR, Chandigarh, and Patiala. Search results are limited to 50 km from the selected location, and distances are straight-line estimates rather than road routes. The database seeder adds missing demo entries by hospital name and does not delete existing records.
 
 ---
 
@@ -57,6 +60,8 @@ The selected coordinates are kept in React Router history state rather than the 
 **Framework:** FastAPI + Pydantic v2
 **ORM:** SQLAlchemy 2 (declarative)
 **Configuration:** pydantic-settings reading from `.env`
+
+By default, the database file is `backend/queueless.db`. The Windows launcher supplies an explicit SQLite URL so existing per-machine settings cannot silently select an unprepared database.
 
 ### Routers
 
@@ -72,21 +77,31 @@ The selected coordinates are kept in React Router history state rather than the 
 Score = 0.4 × wait_score + 0.3 × distance_score + 0.3 × cost_score
 
 where:
-  wait_score     = min(queue * 2 / 120, 1) × 100
+  wait_score     = min(estimated_wait_minutes / 120, 1) × 100
   distance_score = min(distance_km / 50, 1) × 100
   cost_score     = min(avg_fee / 3000, 1) × 100
 
 Lower score = better rank.
 ```
 
+`estimated_wait_minutes` uses the queue-workload estimate below. When both fee values are absent,
+`cost_score` defaults to 50. The resulting score is a prototype heuristic, not a medical-care
+recommendation.
+
 ### Queue Estimation
 
 ```
-wait_min = max(5, queue_size × 2 + 5)
+estimated_wait_min = max(5, 5 + ceil(60 × queue_size / service_capacity_per_hour))
 
-Hourly queue = HOURLY_PATTERN[hour] × hospital_multiplier(id)
-hospital_multiplier(id) = 0.64 + (id % 10) × 0.06  ∈ [0.64, 1.18]
+hourly_queue = round(HOURLY_PATTERN[hour] × hospital_demand_multiplier × department_demand_factor)
+hospital_demand_multiplier = 0.64 + (hospital_id % 10) × 0.06
 ```
+
+The synthetic service-capacity baseline varies by department and is adjusted deterministically by
+hospital ID. The forecast curve and capacity factors are invented demonstration assumptions, not
+observations, staffing information, or live hospital operations. The 5-minute intake buffer is
+included in current and forecast estimates alike. Search results and the detail page use the same
+calculation for a hospital/department pair.
 
 ---
 
@@ -100,7 +115,7 @@ Hospital (1) ──── (N) Doctor
 Hospital (1) ──── (N) QueueRecord
 Department (1) ─── (N) Doctor
 Scheme (standalone lookup)
-User (standalone — auth prototype)
+User (standalone schema only; no auth routes)
 ```
 
 ### Tables
@@ -128,6 +143,7 @@ Backend allows requests from `http://localhost:5173` and `http://127.0.0.1:5173`
 ## Security Considerations
 
 - Authentication UI exists but is prototype-only (no real session or token)
+- Hospital and clinician details and queue estimates are unverified demonstration data
 - No secrets are committed; `.env` is gitignored
 - `DATABASE_URL` is loaded at runtime from environment
 - No admin or write endpoints are exposed publicly
