@@ -1,147 +1,117 @@
-# QueueLess — Healthcare Navigation
+# QueueLess
 
-QueueLess is an intelligent healthcare navigation platform that assists patients in deciding **where to go** and **when to arrive** for non-emergency and emergency conditions. It routes presenting symptoms to medical departments, calculates travel distance, evaluates estimated queue wait times and consultation fees, and projects hourly queue demand across operating hours.
+QueueLess is a healthcare-navigation **academic MVP**. It helps people explore a demonstration hospital directory, route a symptom phrase to a department, compare nearby facilities, and inspect illustrative queue forecasts.
 
----
+> **Important:** QueueLess is not a medical service. It does not diagnose, triage, book appointments, or report live availability. Hospital, clinician, fee, phone, and emergency-service records in this prototype are unverified demonstration data. Queue estimates and rankings are synthetic. For a medical emergency in India, call **108** or **112**; do not wait for this app.
 
-## Key Capabilities
+## Run on Windows
 
-- **Symptom-to-Department Routing**: Deterministic rule-based engine mapping natural symptom descriptions (knee pain, fever, chest pain, rash, eye discomfort, toothache) to medical departments.
-- **Explainable Recommendation Scoring**: Deterministic multi-criteria scoring algorithm weighting wait time (40%), physical distance (30%), and consultation cost (30%).
-- **Hourly Queue Predictions**: 13-hour forecast window (8:00 AM to 8:00 PM) scaled per hospital, with automated identification of the lowest-wait arrival slot.
-- **Location-Aware Search**: Visitors can explicitly share their device location or choose an approximate area across Delhi-NCR, Chandigarh, and Patiala. Results are limited to a 50 km radius and distances are straight-line estimates.
-- **Emergency Priority Workflow**: Dedicated safety mode with one-tap dialing for **108** (Ambulance) and **112** (National Emergency), filtering for 24/7 accredited emergency trauma centers.
-- **Clinical Profiles**: Comprehensive hospital detail pages displaying departments, consulting fee ranges, physician credentials, facility accreditations, and coverage under Indian healthcare schemes (Ayushman Bharat PM-JAY, ESI, Delhi Arogya Kosh).
-- **Fernand-Inspired Craft & Aesthetics**: Clean, calm, high-contrast healthcare design system built with Tailwind CSS, custom design tokens, and a procedural 3D wireframe terrain canvas. Zero emojis, zero artificial decoration, and zero unsupported diagnostic claims.
+Requirements: **Python 3.11+**, **Node.js 20.19+ or 22.12+**, and npm.
 
----
-
-## Technology Stack
-
-| Tier | Technologies |
-|---|---|
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS v4, React Router v6, Lucide Icons |
-| **Backend** | Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy 2 |
-| **Database** | PostgreSQL (or SQLite local fallback supported via SQLAlchemy ORM) |
-| **Design System** | Custom tokens in `src/index.css`, Inter typography, accessible focus states |
-
----
-
-## Project Structure
-
-```
-QueueLess/
-├── frontend/
-│   ├── src/
-│   │   ├── components/     Navbar, Footer, TerrainCanvas
-│   │   ├── pages/          Home, SearchPage, Results, HospitalDetail, Emergency, Login
-│   │   ├── api.ts          Typed fetch client with error handling
-│   │   ├── types.ts        TypeScript interfaces matching FastAPI schemas
-│   │   └── index.css       Fernand-inspired design system tokens
-│   └── package.json
-├── backend/
-│   ├── app/
-│   │   ├── main.py         FastAPI application & CORS middleware
-│   │   ├── models.py       SQLAlchemy ORM models
-│   │   ├── database.py     Engine and SessionLocal factory
-│   │   ├── config.py       Environment settings via pydantic-settings
-│   │   └── routers/
-│   │       ├── hospitals.py  Hospital listing & detail endpoints
-│   │       ├── search.py     Symptom routing & recommendation scoring
-│   │       └── queue.py      Hourly queue prediction & lowest-wait calculation
-│   ├── tests/
-│   │   └── test_unit.py    Pytest suite (21 unit tests)
-│   ├── seed.py             Database seeder (16 hospitals across Delhi-NCR, Chandigarh, and Patiala)
-│   └── requirements.txt
-└── docs/
-    ├── ARCHITECTURE.md     System architecture, data flows, and ER diagrams
-    ├── DESIGN_SYSTEM.md    Fernand-inspired visual principles and tokens
-    ├── DECISIONS.md        Architectural Decision Records (ADRs)
-    └── TESTING.md          Verification guide & reproducible test commands
-```
-
----
-
-## Running the Application Locally (Windows)
-
-### Terminal 1: Backend API
+Open PowerShell in the project folder and run:
 
 ```powershell
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment (if not already created)
-python -m venv venv
-
-# Activate virtual environment
-.\venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Add any missing demonstration hospitals and schemes (safe to rerun)
-python seed.py
-
-# Start FastAPI server on port 8000
-uvicorn app.main:app --reload --port 8000
+.\scripts\run.ps1
 ```
 
-- API Base URL: `http://localhost:8000`
-- Interactive Swagger Documentation: `http://localhost:8000/docs`
-- Health Check: `http://localhost:8000/api/health`
-
-### Terminal 2: Frontend Web Client
+If PowerShell blocks local scripts, allow scripts for this terminal only, then run it:
 
 ```powershell
-# Navigate to frontend directory
-cd frontend
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\run.ps1
+```
 
-# Install npm packages
-npm install
+The launcher creates `backend\venv` if needed, installs missing dependencies, prepares the local SQLite demonstration database, and starts the API and frontend together. It checks that both services are ready and stops them when you press **Ctrl+C**. It does not require PostgreSQL or separate terminal windows. The local database is kept at `backend\queueless.db` and ignored by Git.
 
-# Start Vite development server
+Open:
+
+- Web app: <http://127.0.0.1:5173>
+- Interactive API docs: <http://127.0.0.1:8000/docs>
+- API health: <http://127.0.0.1:8000/api/health>
+
+The launcher owns ports **8000** and **5173**. If it reports that a port is already in use, stop the other service using that port and rerun the command.
+
+## Screenshots
+
+The screenshots below show the desktop-first care search and hospital comparison experience. All facilities and estimates shown are demonstration data.
+
+### Find care
+
+![QueueLess Find Care page with location selection, symptom search, emergency call links, and specialty cards](docs/screenshots/find-care.png)
+
+### Search results
+
+![QueueLess search results with wait, distance, and consultation-fee comparisons](docs/screenshots/search-results.png)
+
+### Optional: run services separately
+
+```powershell
+Set-Location backend
+$env:DATABASE_URL = "sqlite:///./queueless.db"
+.\venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+```
+
+In another terminal:
+
+```powershell
+Set-Location frontend
 npm run dev
 ```
 
-- Web Client: `http://localhost:5173`
+The launcher is preferred because it also checks requirements and prepares the demo data.
 
----
+## Main user journey
 
-## Reproducible Testing & Verification
+1. Search for a supported symptom or browse the hospital directory.
+2. Select an approximate search area or explicitly grant device-location permission.
+3. Compare nearby listed facilities by estimated queue, straight-line distance, and fee range.
+4. Open a hospital profile to review listed departments and an hourly demonstration forecast.
+5. Use the emergency page for call guidance; emergency directory flags are not independently verified.
 
-### Run Backend Unit Tests
+The included demo seed provides 28 directory entries: existing example profiles plus 12 explicitly named synthetic QueueLess care centres. Queue projections use a transparent workload heuristic:
 
-```powershell
-cd backend
-.\venv\Scripts\pytest tests/ -v
+```text
+estimated wait = 5-minute intake buffer + ceil(60 × queue size / assumed hourly service capacity)
 ```
 
-Expected result: **21 passed** covering symptom routing, local-radius filtering, great-circle haversine calculation, weighted scoring logic, queue conversion, and multiplier bounds.
+The hourly queue starts from an illustrative daily demand curve, adjusted by a stable hospital factor and a department demand factor. Service capacity is also a synthetic per-department assumption. Neither the directory nor this calculation reflects verified staffing, historical hospital feeds, or live queue conditions.
 
-### Run Frontend Production Build
+The current symptom rules are transparent keyword routing—not a clinical model. Unknown phrases fall back to General Medicine. A symptom alone cannot establish a diagnosis or whether care is urgent; call emergency services when needed.
+
+## Validation commands
+
+From the project root:
 
 ```powershell
-cd frontend
-npm run build
+npm --prefix frontend run build
+npm --prefix frontend run lint
+Set-Location backend
+.\venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\venv\Scripts\python.exe -m pytest tests -v
 ```
 
-Expected result: **Built in ~1s with 0 errors**.
+## Project structure and maintenance
 
----
+```text
+backend/       FastAPI API, SQLAlchemy models, idempotent demo seeder, and tests
+frontend/      React + TypeScript application and workspace styles
+docs/          Architecture, design, decisions, testing notes, and screenshots
+scripts/       Windows PowerShell launcher for the complete local demo
+```
 
-## Verified Primary User Journeys
+For routine changes, install frontend dependencies from the lockfile with `npm --prefix frontend ci`, run the frontend build and lint checks, and run backend tests from `backend` using the virtual environment commands above. The demo seeder is safe to rerun: it adds missing sample records without deleting existing data. The launcher selects the local SQLite database automatically.
 
-1. **Standard Care Discovery**:
-   `Home Search / Chips ("knee pain")` &rarr; `Routing to Orthopedics` &rarr; `Ranked Results (AIIMS, Safdarjung, Max)` &rarr; `Hospital Detail Profile` &rarr; `Queue & Hourly Prediction Inspection` &rarr; `Best Visit Hour Identified`
+Keep local configuration (`backend/.env`), the generated database (`backend/queueless.db`), virtual environments, and dependency/build output out of commits. Only update `.env.example` with placeholder configuration—never credentials. Review the [architecture](docs/ARCHITECTURE.md), [design system](docs/DESIGN_SYSTEM.md), and [testing guide](docs/TESTING.md) when changing the corresponding project behavior.
 
-2. **Emergency Trauma Journey**:
-   `Emergency Priority Banner / Nav` &rarr; `Direct Call Guidance (108 / 112)` &rarr; `Filtered 24/7 Emergency Hospitals` &rarr; `Immediate Trauma Center Coordinates`
+## Stack and design
 
----
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4, React Router 7, Lucide
+- **API:** FastAPI, Pydantic, SQLAlchemy
+- **Default database:** SQLite for a reproducible local demo; `DATABASE_URL` can point at another SQLAlchemy-supported database
+- **Design:** desktop-first dark care workspace, open dashboard and directory layouts, accessible controls, and clear error/empty states
 
-## Academic Scope & Limitations Disclosure
+## Scope and next production steps
 
-- **Simulated Queue Data**: Real-time hospital queue APIs are not publicly accessible in India. Queue counts and wait times are generated using synthetic baseline demand patterns scaled per facility. This is explicitly disclosed across all user-facing views.
-- **Location and Coverage**: Device location is requested only after the visitor selects “Use my location.” Manual area choices use approximate city-centre coordinates. The directory currently covers Delhi-NCR, Chandigarh, and Patiala; searches show hospitals within 50 km. Displayed distances are not road travel times. Punjab/Chandigarh additions have no verified phone, doctor, fee, or facility records; confirm details with the hospital. The seed command adds missing demo records without deleting existing data.
-- **Non-Diagnostic Notice**: QueueLess provides routing and directional guidance only. It does not perform clinical diagnosis or replace medical practitioners.
-- **Authentication**: Registration and sign-in interfaces demonstrate the user journey; server-side JWT issuance and password hashing are identified as future production milestones.
+The MVP includes the landing page, symptom search, hospital directory with filters, ranked results, hospital profiles, department selection, hourly wait visualization, location consent, and emergency calling guidance. Account creation is only a labelled visual prototype; there is no authentication or patient-data storage.
+
+This repository is suitable for an academic demonstration, **not deployment for patient care**. Production use would require, at minimum, verified provider data and update agreements, real queue/availability integrations, clinically reviewed safety flows, location/privacy controls, authentication and authorization, audit/security review, database migrations, monitoring, accessibility testing, and end-to-end testing. Do not enter personal health information.
