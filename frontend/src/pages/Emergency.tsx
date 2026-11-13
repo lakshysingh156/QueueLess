@@ -1,6 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { AlertTriangle, ArrowRight, Phone, ChevronRight } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowRight,
+  ChevronRight,
+  Phone,
+  ShieldAlert,
+} from 'lucide-react';
 import Navbar from '../components/Navbar';
 import LocationPicker from '../components/LocationPicker';
 import { getSearchLocation, withSearchLocation } from '../searchLocation';
@@ -27,8 +33,8 @@ export default function Emergency() {
     });
   }
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
     const query = symptom.trim() || 'emergency';
     navigate(`/results?symptom=${encodeURIComponent(query)}`, {
       state: withSearchLocation(routeLocation.state, searchLocation),
@@ -42,105 +48,100 @@ export default function Emergency() {
   }
 
   return (
-    <div className="site-wrapper bg-[#fcfbfa]">
+    <div className="site-wrapper workspace-page">
       <Navbar />
-
-      <main className="flex-1 page-container py-14 max-w-2xl">
-        {/* Navigation Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
-          <Link to="/" className="hover:text-slate-700 transition-colors">Home</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="text-rose-700 font-semibold">Emergency</span>
+      <main className="workspace-main emergency-page">
+        <nav aria-label="Breadcrumb" className="workspace-breadcrumb page-breadcrumb">
+          <Link to="/">HOME</Link><ChevronRight aria-hidden="true" /><span>SAFETY</span>
         </nav>
 
-        {/* Immediate Call Notice */}
-        <div className="card p-7 sm:p-8 bg-rose-50/70 border-rose-200 mb-8">
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5 text-rose-600" />
-            </div>
+        <header className="page-intro emergency-intro">
+          <span className="page-kicker page-kicker-danger"><ShieldAlert aria-hidden="true" /> SAFETY & URGENT CARE</span>
+          <h1>Emergency guide</h1>
+          <p>Quick access to emergency services and a directory of illustrative listings.</p>
+        </header>
+
+        <section className="emergency-critical" aria-labelledby="emergency-critical-title">
+          <div className="emergency-critical-copy">
+            <span className="emergency-critical-icon"><AlertTriangle aria-hidden="true" /></span>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-rose-950 mb-1.5">
-                Life-Threatening Emergency?
-              </h1>
-              <p className="text-xs sm:text-sm text-rose-800 leading-relaxed">
-                Do not wait for search results if a patient is unresponsive, having severe chest pain, or struggling to breathe.
-              </p>
+              <span className="emergency-critical-label">IF SOMEONE MAY BE IN IMMEDIATE DANGER</span>
+              <h2 id="emergency-critical-title">Do not wait for search results.</h2>
+              <p>Call local emergency services now. QueueLess cannot assess urgency or dispatch help.</p>
             </div>
           </div>
-
-          {/* Direct Telephone Call Buttons */}
-          <div className="grid sm:grid-cols-2 gap-3">
-            <a
-              href="tel:108"
-              className="btn btn-danger btn-lg text-center justify-center py-3.5"
-            >
-              <Phone className="w-4 h-4 mr-1.5" />
-              Call 108 (Ambulance)
+          <div className="emergency-call-actions">
+            <a href="tel:108" className="emergency-call emergency-call-primary">
+              <Phone aria-hidden="true" /><span><strong>Call 108</strong><small>Ambulance · India</small></span><ArrowRight aria-hidden="true" />
             </a>
-
-            <a
-              href="tel:112"
-              className="btn btn-secondary btn-lg text-center justify-center py-3.5 border-rose-200 text-rose-800 hover:bg-rose-100"
-            >
-              <Phone className="w-4 h-4 mr-1.5 text-rose-600" />
-              Call 112 (National Emergency)
+            <a href="tel:112" className="emergency-call">
+              <Phone aria-hidden="true" /><span><strong>Call 112</strong><small>National emergency · India</small></span><ArrowRight aria-hidden="true" />
             </a>
           </div>
-        </div>
+        </section>
 
-        {/* Emergency Hospital Search */}
-        <div className="card p-7 sm:p-8 mb-8">
-          <h2 className="text-base font-semibold text-slate-900 mb-1">
-            Find Emergency Trauma Centers
-          </h2>
-          <p className="text-xs text-slate-500 mb-6">
-            View listed hospitals marked for emergency services within 50 km. Call emergency services first if someone may be in immediate danger.
-          </p>
-
-          <div className="mb-5">
-            <LocationPicker value={searchLocation} onChange={updateLocation} />
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-6">
-            <input
-              type="text"
-              autoFocus
-              value={symptom}
-              onChange={(e) => setSymptom(e.target.value)}
-              placeholder="e.g. chest pain, cardiac distress, trauma..."
-              className="input py-3 text-sm focus:border-rose-500 focus:ring-rose-500/10 flex-1"
-            />
-            <button type="submit" className="btn btn-danger btn-lg px-6">
-              Find Now
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </button>
-          </form>
-
-          {/* Quick Condition Chips */}
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
-              Common Situations
+        <div className="emergency-content-grid">
+          <section className="panel emergency-directory" aria-labelledby="emergency-directory-title">
+            <div className="panel-heading emergency-panel-heading">
+              <div>
+                <span className="section-overline">HOSPITAL DIRECTORY</span>
+                <h2 id="emergency-directory-title">Explore emergency-service listings</h2>
+                <p>Search entries flagged for emergency services nearby. Flags are unverified.</p>
+              </div>
+              <span className="panel-heading-icon emergency-panel-icon"><ShieldAlert aria-hidden="true" /></span>
             </div>
-            <div className="grid sm:grid-cols-2 gap-2">
-              {EMERGENCY_CONDITIONS.map((item) => (
+
+            <div className="emergency-directory-content">
+              <LocationPicker value={searchLocation} onChange={updateLocation} />
+              <form onSubmit={handleSubmit} className="emergency-search-form">
+                <label htmlFor="emergency-search">Describe the care you’re looking for</label>
+                <div className="emergency-search-row">
+                  <input
+                    id="emergency-search"
+                    type="text"
+                    value={symptom}
+                    onChange={(event) => setSymptom(event.target.value)}
+                    placeholder="e.g. chest pain, breathing difficulty, trauma"
+                    className="input"
+                  />
+                  <button type="submit" className="emergency-search-button">
+                    Search directory <ArrowRight aria-hidden="true" />
+                  </button>
+                </div>
+                <p>This is a directory search only—not triage or emergency dispatch.</p>
+              </form>
+            </div>
+          </section>
+
+          <section className="panel emergency-conditions" aria-labelledby="emergency-conditions-title">
+            <div className="panel-heading emergency-panel-heading">
+              <div>
+                <span className="section-overline">QUICK ROUTES</span>
+                <h2 id="emergency-conditions-title">Common urgent situations</h2>
+                <p>Choose a phrase to view matching demo listings.</p>
+              </div>
+            </div>
+            <div className="emergency-condition-list">
+              {EMERGENCY_CONDITIONS.map((condition, index) => (
                 <button
-                  key={item}
+                  key={condition}
                   type="button"
-                  onClick={() => handleQuickRoute(item)}
-                  className="card card-hover p-3 text-left text-xs text-slate-700 hover:text-rose-700 hover:border-rose-200 transition-all flex items-center justify-between"
+                  onClick={() => handleQuickRoute(condition)}
+                  className="emergency-condition"
                 >
-                  <span>{item}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="condition-index">{String(index + 1).padStart(2, '0')}</span>
+                  <span>{condition}</span>
+                  <ArrowRight aria-hidden="true" />
                 </button>
               ))}
             </div>
-          </div>
+          </section>
         </div>
 
-        {/* Safety Disclaimer */}
-        <p className="text-xs text-slate-400 text-center leading-relaxed px-4">
-          QueueLess provides hospital routing and does not dispatch emergency personnel or perform medical triage.
+        <p className="emergency-footnote">
+          <AlertTriangle aria-hidden="true" />
+          Hospital, emergency-service, and location information is unverified demonstration data.
+          If someone may be in immediate danger, contact local emergency services directly.
         </p>
       </main>
     </div>

@@ -76,5 +76,6 @@ export interface QueueResponse {
   suggested_label: string;
   suggested_wait_min: number;
   hourly_predictions: HourlyPrediction[];
+  estimate_method: string;
   disclaimer: string;
 }

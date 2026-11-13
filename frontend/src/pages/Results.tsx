@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
   MapPin,
@@ -30,34 +30,40 @@ export default function Results() {
   const [error, setError] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [filterEmergency, setFilterEmergency] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
 
   function updateLocation(nextLocation: typeof searchLocation) {
+    setLoading(true);
+    setError('');
     navigate(`${routeLocation.pathname}${routeLocation.search}`, {
       replace: true,
       state: withSearchLocation(routeLocation.state, nextLocation),
     });
   }
 
-  const fetchResults = useCallback(() => {
-    if (!symptom) {
-      setData(null);
-      setError('');
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    if (!symptom) return;
+    let active = true;
+    searchHospitals(symptom, searchLocation.latitude, searchLocation.longitude)
+      .then((response) => {
+        if (active) setData(response);
+      })
+      .catch(() => {
+        if (active) setError('Could not connect to the hospital service. Please verify the backend is running.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [retryToken, searchLocation.latitude, searchLocation.longitude, symptom]);
+
+  function retrySearch() {
     setLoading(true);
     setError('');
-    searchHospitals(symptom, searchLocation.latitude, searchLocation.longitude)
-      .then(setData)
-      .catch(() => {
-        setError('Could not connect to the hospital service. Please verify the backend is running.');
-      })
-      .finally(() => setLoading(false));
-  }, [symptom, searchLocation.latitude, searchLocation.longitude]);
-
-  useEffect(() => {
-    fetchResults();
-  }, [fetchResults]);
+    setRetryToken((token) => token + 1);
+  }
 
   const filtered = (data?.results ?? []).filter((r) => !filterEmergency || r.emergency_available);
   const sorted = [...filtered].sort((a, b) => {
@@ -67,69 +73,91 @@ export default function Results() {
     return (a[sortKey] as number) - (b[sortKey] as number);
   });
 
+  if (!symptom) {
+    return (
+      <div className="site-wrapper bg-[#fbfcfd]">
+        <Navbar />
+        <main className="page-container flex-1 py-20 text-center">
+          <h1 className="text-2xl font-semibold text-slate-900">Start with a symptom or specialty</h1>
+          <p className="mt-3 text-sm text-slate-600">Search is a navigation aid, not a medical diagnosis.</p>
+          <Link to="/search" className="btn btn-primary mt-6">Start a search</Link>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="site-wrapper bg-[#fbfcfd]">
       <Navbar />
 
-      <main className="flex-1 page-container max-w-6xl py-16 sm:py-20 pb-28">
-        {/* Navigation Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
-          <Link to="/" className="hover:text-slate-700 transition-colors">Home</Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <Link
-            to="/search"
-            state={withSearchLocation(routeLocation.state, searchLocation)}
-            className="hover:text-slate-700 transition-colors"
-          >
-            Search
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="text-slate-700 font-medium">{data?.routed_department || 'Results'}</span>
-        </nav>
+      <main className="workspace-main results-page">
+        <div className="results-content">
+          <nav aria-label="Breadcrumb" className="workspace-breadcrumb page-breadcrumb results-breadcrumb">
+            <Link to="/">HOME</Link>
+            <ChevronRight aria-hidden="true" />
+            <Link
+              to="/search"
+              state={withSearchLocation(routeLocation.state, searchLocation)}
+            >
+              FIND CARE
+            </Link>
+            <ChevronRight aria-hidden="true" />
+            <span>{data?.routed_department || 'RESULTS'}</span>
+          </nav>
 
-        <div className="mb-8">
-          <LocationPicker value={searchLocation} onChange={updateLocation} />
-        </div>
-
-        {/* Search Header */}
-        {data && !loading && (
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 pb-8 border-b border-slate-200">
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-3">
+          {data && !loading && (
+            <header className="results-heading">
+              <div className="results-heading-copy">
+                <div className="results-labels">
                 <span className="badge badge-blue">{data.routed_department}</span>
                 {data.is_emergency && (
                   <span className="badge badge-red font-semibold">Emergency Priority</span>
                 )}
-                <span className="text-sm text-slate-400">Results for &ldquo;{symptom}&rdquo;</span>
+                <span className="results-query">Results for “{symptom}”</span>
+                </div>
+                <h1>Hospital recommendations</h1>
+                <p className="results-count">
+                  {loading ? 'Searching nearby listings…' : `${sorted.length} ${sorted.length === 1 ? 'hospital' : 'hospitals'} to compare`}
+                  <span>Ranked by estimated wait, distance, and listed consultation fees.</span>
+                </p>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
-                Hospital Recommendations
-              </h1>
-              <p className="text-sm text-slate-500 mt-2">
-                Showing {sorted.length} hospitals ranked by wait time, distance, and consultation fees.
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Queue and fee information may be estimated or incomplete. Confirm details with the hospital.
+              <Link
+                to="/search"
+                state={withSearchLocation(routeLocation.state, searchLocation)}
+                className="results-change-search"
+              >
+                <Search aria-hidden="true" />
+                Change search
+              </Link>
+            </header>
+          )}
+
+          <div className="results-location">
+            <LocationPicker value={searchLocation} onChange={updateLocation} compact />
+          </div>
+
+        {data && !loading && (data.is_emergency || /\b(chest pain|breath|stroke|unconscious|bleeding|seizure|trauma|head injury)\b/i.test(symptom)) && (
+          <aside className="results-emergency-banner">
+            <div className="results-emergency-copy">
+              <AlertTriangle aria-hidden="true" />
+              <p>
+              {data.is_emergency
+                ? 'This phrase matched an emergency-routing keyword. QueueLess cannot assess urgency; call for emergency help now if someone may be in danger.'
+                : 'If this situation may be an emergency, do not wait for search results. Call 108 or 112 in India.'}
               </p>
             </div>
-
-            <Link
-              to="/search"
-              state={withSearchLocation(routeLocation.state, searchLocation)}
-              className="btn btn-secondary btn-sm self-start sm:self-auto px-3.5 py-2"
-            >
-              <Search className="w-3.5 h-3.5 mr-1.5 text-slate-400" />
-              Change Search
-            </Link>
-          </div>
+            <div className="results-emergency-actions">
+              <a href="tel:108">Call 108</a>
+              <a href="tel:112">Call 112</a>
+            </div>
+          </aside>
         )}
 
-        {/* Filter and Sort Pills */}
         {data && !loading && sorted.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-slate-400 mr-1.5 flex items-center gap-1">
-                <ArrowUpDown className="w-3 h-3" /> Sort by:
+          <section className="results-controls" aria-label="Sort and filter recommendations">
+            <div className="results-sort-group">
+              <span className="results-sort-label">
+                <ArrowUpDown aria-hidden="true" /> Sort results
               </span>
               {(
                 [
@@ -143,9 +171,8 @@ export default function Results() {
                   key={key}
                   type="button"
                   onClick={() => setSortKey(key)}
-                  className={`btn btn-sm ${
-                    sortKey === key ? 'btn-primary' : 'btn-secondary text-slate-600'
-                  }`}
+                  aria-pressed={sortKey === key}
+                  className={`results-sort-button${sortKey === key ? ' is-selected' : ''}`}
                 >
                   {label}
                 </button>
@@ -155,18 +182,18 @@ export default function Results() {
             <button
               type="button"
               onClick={() => setFilterEmergency((prev) => !prev)}
-              className={`btn btn-sm ${
-                filterEmergency ? 'btn-danger' : 'btn-secondary text-slate-600'
-              }`}
+              aria-pressed={filterEmergency}
+              className={`results-emergency-filter${filterEmergency ? ' is-selected' : ''}`}
             >
-              Emergency Ready Only
+              <AlertTriangle aria-hidden="true" />
+              {filterEmergency ? 'Showing emergency listings' : 'Emergency services listed'}
             </button>
-          </div>
+          </section>
         )}
 
         {/* Loading State */}
         {loading && (
-          <div className="py-24 flex flex-col items-center justify-center text-center">
+          <div className="results-status">
             <div className="spinner mb-4" />
             <p className="text-sm font-medium text-slate-700">Searching hospital queues...</p>
           </div>
@@ -174,11 +201,11 @@ export default function Results() {
 
         {/* Error State */}
         {error && (
-          <div className="card p-8 bg-rose-50/50 border-rose-200 max-w-lg mx-auto my-12 text-center">
+          <div className="card results-state-card">
             <AlertTriangle className="w-6 h-6 text-rose-600 mx-auto mb-3" />
             <h2 className="text-sm font-semibold text-rose-900 mb-1">Failed to load results</h2>
             <p className="text-xs text-rose-700 mb-4">{error}</p>
-            <button type="button" onClick={fetchResults} className="btn btn-secondary btn-sm mx-auto">
+            <button type="button" onClick={retrySearch} className="btn btn-secondary btn-sm mx-auto">
               <RotateCcw className="w-3.5 h-3.5 mr-1" />
               Try again
             </button>
@@ -187,7 +214,7 @@ export default function Results() {
 
         {/* Empty State */}
         {!loading && !error && sorted.length === 0 && (
-          <div className="card p-12 text-center max-w-md mx-auto my-12">
+          <div className="card results-state-card">
             <Search className="w-6 h-6 text-slate-300 mx-auto mb-3" />
             <h2 className="text-base font-semibold text-slate-900 mb-1">No hospitals found</h2>
             <p className="text-xs text-slate-500 mb-5">
@@ -202,7 +229,7 @@ export default function Results() {
 
         {/* Defined, High-Quality Hospital Cards */}
         {!loading && !error && sorted.length > 0 && (
-          <div className="space-y-6">
+          <div className="results-list">
             {sorted.map((item) => (
               <HospitalCard
                 key={item.hospital_id}
@@ -216,6 +243,7 @@ export default function Results() {
             ))}
           </div>
         )}
+        </div>
       </main>
     </div>
   );
@@ -254,10 +282,14 @@ function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: (
             </div>
           </div>
           <div className="result-card-badges">
-            {isTopRanked && <span className="badge badge-blue">Recommended</span>}
+            {isTopRanked && <span className="badge badge-blue">Top match</span>}
             <span className="badge badge-gray">{r.department}</span>
-            {r.emergency_available && <span className="badge badge-red">24/7 Emergency</span>}
+            {r.emergency_available && <span className="badge badge-red">Emergency listed*</span>}
           </div>
+          <p className="mt-3 text-xs leading-relaxed text-slate-500">
+            {r.explanation} Scores balance estimated wait, straight-line distance, and listed fees;
+            this is not a clinical recommendation.
+          </p>
         </div>
 
         <div className="result-card-metrics">

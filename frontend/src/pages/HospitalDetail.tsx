@@ -1,10 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
   MapPin,
   Phone,
   ChevronRight,
-  UserCheck,
   Stethoscope,
   ShieldCheck,
   AlertCircle,
@@ -26,32 +25,53 @@ export default function HospitalDetailPage() {
   const [queue, setQueue] = useState<QueueResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const loadData = useCallback(() => {
-    if (!id) return;
-    const hid = parseInt(id, 10);
-    if (isNaN(hid)) {
-      setError('Invalid hospital ID specified');
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError('');
-    Promise.all([getHospital(hid), getQueue(hid, department)])
-      .then(([h, q]) => {
-        setHospital(h);
-        setQueue(q);
-      })
-      .catch(() => setError('Could not load hospital data from the backend.'))
-      .finally(() => setLoading(false));
-  }, [id, department]);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const hospitalId = Number(id);
+    if (!id || !Number.isInteger(hospitalId) || hospitalId <= 0) return;
+    let active = true;
+    Promise.all([getHospital(hospitalId), getQueue(hospitalId, department)])
+      .then(([h, q]) => {
+        if (active) {
+          setHospital(h);
+          setQueue(q);
+        }
+      })
+      .catch(() => {
+        if (active) setError('Could not load hospital data from the backend.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [department, id, retryToken]);
 
   function handleDepartmentChange(deptName: string) {
+    setLoading(true);
+    setError('');
     setParams({ department: deptName });
+  }
+
+  function retryLoading() {
+    setLoading(true);
+    setError('');
+    setRetryToken((token) => token + 1);
+  }
+
+  if (!id || !Number.isInteger(Number(id)) || Number(id) <= 0) {
+    return (
+      <div className="site-wrapper bg-[#fbfcfd]">
+        <Navbar />
+        <main className="page-container flex-1 py-24 text-center">
+          <h1 className="text-base font-semibold text-slate-900">Invalid hospital link</h1>
+          <p className="mt-2 text-sm text-slate-600">Choose a hospital from the directory to continue.</p>
+          <Link to="/hospitals" className="btn btn-primary mt-5">Browse hospitals</Link>
+        </main>
+      </div>
+    );
   }
 
   if (loading) {
@@ -72,10 +92,10 @@ export default function HospitalDetailPage() {
         <Navbar />
         <div className="flex-1 page-container py-24 flex flex-col items-center justify-center text-center">
           <AlertCircle className="w-8 h-8 text-rose-600 mb-3" />
-          <h1 className="text-base font-semibold text-slate-900 mb-1">Hospital not found</h1>
+          <h1 className="text-base font-semibold text-slate-900 mb-1">Hospital details unavailable</h1>
           <p className="text-xs text-slate-500 mb-5">{error || 'Could not locate hospital record.'}</p>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={loadData} className="btn btn-secondary btn-sm">
+            <button type="button" onClick={retryLoading} className="btn btn-secondary btn-sm">
               <RotateCcw className="w-3.5 h-3.5 mr-1" /> Try again
             </button>
             <button type="button" onClick={() => navigate(-1)} className="btn btn-primary btn-sm">
@@ -95,9 +115,9 @@ export default function HospitalDetailPage() {
     <div className="site-wrapper bg-[#fbfcfd]">
       <Navbar />
 
-      <main className="flex-1 page-container max-w-5xl py-14 sm:py-16 pb-28">
+      <main className="workspace-main hospital-detail-page">
         {/* Navigation Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-400 mb-6">
+        <nav aria-label="Breadcrumb" className="workspace-breadcrumb page-breadcrumb">
           <Link to="/" className="hover:text-slate-700 transition-colors">Home</Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
           <button
@@ -112,87 +132,94 @@ export default function HospitalDetailPage() {
         </nav>
 
         {/* Clean Hospital Header */}
-        <div className="card p-7 sm:p-10 mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
-            <div>
+        <div className="hospital-profile-header card">
+          <div className="hospital-profile-copy">
+            <div className="hospital-profile-title">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
+                <h1>
                   {hospital.name}
                 </h1>
                 {hospital.emergency_available && (
-                  <span className="badge badge-red text-xs">24/7 Emergency</span>
+                  <span className="badge badge-red text-xs">Emergency flag — unverified</span>
                 )}
               </div>
-
-              <p className="text-xs text-slate-500 flex items-center gap-1.5 mb-2">
+              <p className="hospital-profile-meta">
                 <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span>{hospital.address}, {hospital.city}</span>
               </p>
 
               {hospital.phone && (
-                <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                <p className="hospital-profile-meta">
                   <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>Listed phone (unverified): </span>
                   <a href={`tel:${hospital.phone}`} className="hover:text-blue-600 transition-colors">
                     {hospital.phone}
                   </a>
                 </p>
               )}
             </div>
-
-            <div className="sm:text-right shrink-0">
-              <span className="text-[11px] text-slate-400 block mb-1">Current Department</span>
+          </div>
+          <div className="hospital-profile-department">
+              <span>Viewing department</span>
               <span className="badge badge-blue font-semibold text-xs py-1 px-3">
                 <Stethoscope className="w-3.5 h-3.5 mr-1" />
                 {department}
               </span>
-            </div>
           </div>
         </div>
 
-        {/* 2-Column Clean Layout with Generous Gap */}
-        <div className="grid lg:grid-cols-3 gap-10 items-start">
-          {/* Main 2-column pane */}
-          <div className="lg:col-span-2 space-y-10">
+        <div className="hospital-detail-grid">
+          <div className="hospital-detail-primary">
             {/* Queue & Hourly Forecast Card */}
             {queue && <QueueForecastSection queue={queue} />}
 
             {/* Departments List */}
-            <div className="card p-6 sm:p-7">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                <h2 className="text-sm font-semibold text-slate-900">Hospital Departments</h2>
+            <div className="card department-panel">
+              <div className="department-panel-heading">
+                <div>
+                  <span className="section-overline">SPECIALTIES & AVAILABILITY</span>
+                  <h2>Hospital departments</h2>
+                </div>
                 <span className="text-xs text-slate-400">{hospital.departments.length} units</span>
               </div>
 
-              <div className="divide-y divide-slate-100">
+              <div className="department-list">
                 {hospital.departments.map((d) => {
                   const isCurrent = d.name.toLowerCase() === department.toLowerCase();
                   return (
                     <div
                       key={d.id}
-                      className={`py-3.5 flex items-center justify-between gap-4 transition-colors ${
+                      className={`department-row transition-colors ${
                         isCurrent ? 'bg-blue-50/40 -mx-3 px-3 rounded-lg' : ''
                       }`}
                     >
-                      <div>
+                      <div className="department-row-name">
                         <button
                           type="button"
                           onClick={() => handleDepartmentChange(d.name)}
-                          className={`text-xs font-semibold hover:text-blue-600 transition-colors text-left ${
-                            isCurrent ? 'text-blue-700' : 'text-slate-800'
+                          disabled={!d.available}
+                          className={`text-xs font-semibold text-left transition-colors ${
+                            !d.available
+                              ? 'cursor-not-allowed text-slate-400'
+                              : isCurrent
+                                ? 'text-blue-700 hover:text-blue-600'
+                                : 'text-slate-800 hover:text-blue-600'
                           }`}
                         >
                           {d.name}
                         </button>
-                        <p className="text-[11px] text-slate-400 mt-0.5">{d.specialty}</p>
+                        <p>{d.specialty}</p>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <div className="text-xs font-semibold text-slate-800">
+                      <div className="department-row-meta">
+                        <div className="department-fee">
                           {d.consultation_fee_min != null && d.consultation_fee_max != null
                             ? `₹${d.consultation_fee_min} to ₹${d.consultation_fee_max}`
                             : 'Fee not listed'}
                         </div>
-                        <div className="text-[11px] text-slate-400">{d.current_queue} waiting</div>
+                        <div className="department-queue">
+                          {d.available ? `${d.current_queue} in demo queue` : 'Currently unavailable'}
+                        </div>
                       </div>
                     </div>
                   );
@@ -200,51 +227,32 @@ export default function HospitalDetailPage() {
               </div>
             </div>
 
-            {/* Doctors on Duty */}
+            {/* Demo records are not verified with hospitals */}
             {hospital.doctors.length > 0 && (
-              <div className="card p-6 sm:p-7">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div className="card clinician-note">
+                <div className="clinician-note-heading">
                   <div className="flex items-center gap-2">
-                    <UserCheck className="w-4 h-4 text-blue-600" />
-                    <h2 className="text-sm font-semibold text-slate-900">Physicians</h2>
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    <h2 className="text-sm font-semibold text-slate-900">Directory profiles</h2>
                   </div>
-                  <span className="text-xs text-slate-400">{hospital.doctors.length} listed</span>
+                  <span className="badge badge-gray">Demonstration data</span>
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {hospital.doctors.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 flex items-start gap-3"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
-                        {doc.name.split(' ').slice(-1)[0]?.charAt(0) ?? 'D'}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-slate-900 truncate">{doc.name}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{doc.qualification}</div>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-[10px] text-slate-400">{doc.experience_years} yrs exp</span>
-                          {doc.available_today && (
-                            <span className="badge badge-green text-[9px] py-0 px-1.5">
-                              Available today
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm leading-relaxed text-slate-600">
+                  Sample names, qualifications, and availability are illustrative only. They are
+                  not verified clinician records; contact the hospital to confirm who is on duty.
+                </p>
               </div>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <aside className="hospital-detail-sidebar">
             {/* Consultation Cost */}
             {activeDept && (
-              <div className="card p-6">
-                <span className="text-xs text-slate-400 block mb-1">Consultation Fee</span>
+              <div className="card detail-side-card">
+                <span className="section-overline">COST OVERVIEW</span>
+                <h2>Consultation fee</h2>
                 <div className="flex items-baseline gap-1 text-slate-900 mb-1">
                   <IndianRupee className="w-4 h-4 text-slate-600 self-center" />
                   <span className="text-2xl font-bold tracking-tight">
@@ -272,15 +280,16 @@ export default function HospitalDetailPage() {
 
             {/* Facilities Tags */}
             {hospital.facilities && hospital.facilities.length > 0 && (
-              <div className="card p-6">
-                <span className="text-xs font-semibold text-slate-900 block mb-3">
+              <div className="card detail-side-card">
+                <span className="section-overline">FACILITY INFORMATION</span>
+                <h2>
                   Facilities
-                </span>
-                <div className="flex flex-wrap gap-1.5">
+                </h2>
+                <div className="facility-list">
                   {hospital.facilities.map((facility) => (
                     <span
                       key={facility}
-                      className="text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-700"
+                      className="facility-tag"
                     >
                       {facility}
                     </span>
@@ -289,11 +298,12 @@ export default function HospitalDetailPage() {
               </div>
             )}
 
-            {/* Clean, Non-intrusive Data Notice */}
-            <p className="text-[11px] text-slate-400 px-2 leading-relaxed">
-              Queue counts and wait predictions are generated from synthetic hourly models for demonstration. Emergency cases are triaged immediately upon arrival.
+            <p className="hospital-data-disclaimer">
+              Demonstration data only: queue counts and hourly estimates are synthetic; hospital,
+              fee, and facility details have not been independently verified. This service is not
+              medical advice or a substitute for emergency care.
             </p>
-          </div>
+          </aside>
         </div>
       </main>
     </div>
@@ -304,33 +314,34 @@ function QueueForecastSection({ queue }: { queue: QueueResponse }) {
   const maxWait = Math.max(...queue.hourly_predictions.map((h) => h.estimated_wait_min), 1);
 
   return (
-    <div className="card p-6 sm:p-7">
-      <div className="flex items-center justify-between mb-5">
+    <div className="card forecast-panel">
+      <div className="forecast-panel-heading">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">Queue & Wait Forecast</h2>
-          <span className="text-xs text-slate-400">8:00 AM to 8:00 PM operating hours</span>
+          <span className="section-overline">SIMULATED QUEUE MODEL</span>
+          <h2>Queue & wait forecast</h2>
+          <p>8:00 AM–8:00 PM · {queue.estimate_method}</p>
         </div>
         <span className="badge badge-gray text-[10px]">Simulated Data</span>
       </div>
 
       {/* 2 Clean Stat Boxes */}
-      <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+      <div className="forecast-stats">
+        <div className="forecast-stat">
           <div className="text-2xl font-bold text-slate-900">{queue.current_queue}</div>
           <div className="text-xs text-slate-500 mt-0.5">Patients waiting now</div>
         </div>
-        <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 text-center">
+        <div className="forecast-stat forecast-stat-primary">
           <div className="text-2xl font-bold text-blue-700">{queue.current_wait_min} min</div>
           <div className="text-xs text-blue-600 mt-0.5">Estimated wait time</div>
         </div>
       </div>
 
       {/* Suggested Lowest Wait Alert */}
-      <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 mb-6 flex items-center gap-3">
+      <div className="forecast-best">
         <CalendarCheck className="w-4 h-4 text-emerald-700 shrink-0" />
         <div className="text-xs">
           <span className="font-semibold text-emerald-900">
-            Best time to visit: {queue.suggested_label}
+            Lowest simulated estimate: {queue.suggested_label}
           </span>
           <span className="text-emerald-700 ml-1.5">
             (Estimated wait ~{queue.suggested_wait_min} min)
@@ -339,13 +350,13 @@ function QueueForecastSection({ queue }: { queue: QueueResponse }) {
       </div>
 
       {/* Hourly Bars */}
-      <div className="space-y-2.5">
+      <div className="forecast-list">
         {queue.hourly_predictions.map((h) => {
           const pct = Math.min((h.estimated_wait_min / maxWait) * 100, 100);
           const isBest = h.hour === queue.suggested_hour;
 
           return (
-            <div key={h.hour} className="flex items-center gap-3 text-xs">
+            <div key={h.hour} className={`forecast-row${isBest ? ' is-best' : ''}`}>
               <span
                 className={`w-16 shrink-0 text-right ${
                   isBest ? 'font-semibold text-emerald-700' : 'text-slate-400'
@@ -380,6 +391,7 @@ function QueueForecastSection({ queue }: { queue: QueueResponse }) {
           );
         })}
       </div>
+      <p className="forecast-disclaimer">{queue.disclaimer}</p>
     </div>
   );
 }

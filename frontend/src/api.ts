@@ -1,4 +1,4 @@
-import type { SearchResponse, HospitalDetail, QueueResponse } from './types';
+import type { SearchResponse, Hospital, HospitalDetail, QueueResponse } from './types';
 
 const BASE = '/api';
 
@@ -10,6 +10,12 @@ export async function searchHospitals(
   const params = new URLSearchParams({ symptom, lat: String(lat), lon: String(lon) });
   const res = await fetch(`${BASE}/search/?${params}`);
   if (!res.ok) throw new Error('Search failed');
+  return res.json();
+}
+
+export async function listHospitals(): Promise<Hospital[]> {
+  const res = await fetch(`${BASE}/hospitals/`);
+  if (!res.ok) throw new Error('Hospital directory is unavailable');
   return res.json();
 }
 

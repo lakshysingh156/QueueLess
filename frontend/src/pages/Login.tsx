@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Clock3, Eye, EyeOff, HeartPulse, MapPin, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
@@ -9,14 +9,9 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const navigate = useNavigate();
-
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    setTimeout(() => {
-      navigate('/');
-    }, 600);
   }
 
   return (
@@ -68,7 +63,7 @@ export default function Login() {
             <ul className="auth-benefits">
               <li><MapPin /> Explore hospitals near you</li>
               <li><Clock3 /> Check estimated wait times</li>
-              <li><ShieldCheck /> Keep your preferences handy</li>
+              <li><ShieldCheck /> Browse without creating an account</li>
             </ul>
           </div>
 
@@ -90,8 +85,8 @@ export default function Login() {
               <h2>{isSignup ? 'Create your account' : 'Sign in to your account'}</h2>
               <p>
                 {isSignup
-                  ? 'Save favorite hospitals and keep your care preferences close.'
-                  : 'Access saved hospitals, care history, and travel preferences.'}
+                  ? 'Account creation is not enabled in this demonstration.'
+                  : 'Account access is not enabled in this demonstration.'}
               </p>
             </div>
 
@@ -127,7 +122,6 @@ export default function Login() {
               <div className="auth-field">
                 <div className="auth-label-row">
                   <label htmlFor="auth-password">Password</label>
-                  {!isSignup && <span className="auth-forgot">Forgot password?</span>}
                 </div>
                 <div className="auth-password-wrap">
                   <input
@@ -156,16 +150,22 @@ export default function Login() {
                 {submitted ? (
                   <>
                     <Check />
-                    Authenticating...
+                    Demo only
                   </>
                 ) : (
                   <>
-                    {isSignup ? 'Create account' : 'Sign in'}
+                    {isSignup ? 'Preview registration' : 'Preview sign-in'}
                     <ArrowRight />
                   </>
                 )}
               </button>
             </form>
+            {submitted && (
+              <p className="auth-demo-note" role="status">
+                Account services are not implemented. Your details were not sent or saved; you can
+                browse the directory without signing in.
+              </p>
+            )}
 
             <div className="auth-switch">
               <span>{isSignup ? 'Already have an account?' : 'New to QueueLess?'}</span>
@@ -182,7 +182,7 @@ export default function Login() {
 
             <p className="auth-demo-note">
               <ShieldCheck />
-              Demonstration mode · credentials are not stored in a public database.
+              Visual prototype only · no account is created and credentials are not sent or stored.
             </p>
           </div>
         </section>

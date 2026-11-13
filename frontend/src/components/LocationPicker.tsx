@@ -5,9 +5,10 @@ import { SEARCH_AREAS, type SearchLocation } from '../searchLocation';
 type LocationPickerProps = {
   value: SearchLocation;
   onChange: (location: SearchLocation) => void;
+  compact?: boolean;
 };
 
-export default function LocationPicker({ value, onChange }: LocationPickerProps) {
+export default function LocationPicker({ value, onChange, compact = false }: LocationPickerProps) {
   const [isLocating, setIsLocating] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,7 +53,7 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5" aria-label="Search location">
+    <section className={`location-picker rounded-xl border border-slate-200 bg-white p-4 sm:p-5${compact ? ' location-picker-compact' : ''}`} aria-label="Search location">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
@@ -108,7 +109,7 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
           {error}
         </p>
       )}
-      <p className="mt-3 text-xs leading-relaxed text-slate-400">
+      <p className="location-picker-note mt-3 text-xs leading-relaxed text-slate-400">
         The directory currently covers Delhi-NCR, Chandigarh, and Patiala. Searches show hospitals
         within 50 km; distances are straight-line estimates, not road travel times. Your device
         location is requested only when you choose “Use my location.”

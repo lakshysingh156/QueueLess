@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Activity,
@@ -13,15 +13,11 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import hospitalWard from '../assets/hospital-ward.png';
+import { getQueue, listHospitals, searchHospitals } from '../api';
+import { DEFAULT_SEARCH_LOCATION } from '../searchLocation';
+import type { QueueResponse, SearchResult } from '../types';
 
 const QUICK_SYMPTOMS = ['Knee pain', 'Fever', 'Chest pain', 'Skin rash', 'Eye problem', 'Dental pain'];
-
-const METRICS = [
-  { value: '16', label: 'Hospitals listed' },
-  { value: '26', label: 'Doctor profiles' },
-  { value: '7', label: 'Care specialties' },
-  { value: '13 hours', label: 'Daily forecasts' },
-];
 
 const SPECIALTIES = [
   'General medicine',
@@ -31,12 +27,6 @@ const SPECIALTIES = [
   'Eye care',
   'Dentistry',
   'Emergency',
-];
-
-const SAMPLE_DOCTORS = [
-  { name: 'Dr. Priya Mehta', specialty: 'Cardiology', initials: 'PM' },
-  { name: 'Dr. Meera Singh', specialty: 'Orthopedics', initials: 'MS' },
-  { name: 'Dr. Neha Joshi', specialty: 'Ophthalmology', initials: 'NJ' },
 ];
 
 const STEPS = [
@@ -62,8 +52,41 @@ const STEPS = [
 
 export default function Home() {
   const [symptom, setSymptom] = useState('');
+  const [directorySummary, setDirectorySummary] = useState<{ hospitals: number; specialties: number } | null>(null);
+  const [featuredResult, setFeaturedResult] = useState<SearchResult | null>(null);
+  const [featuredForecast, setFeaturedForecast] = useState<QueueResponse | null>(null);
+  const [previewError, setPreviewError] = useState(false);
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const maxFeaturedWait = featuredForecast?.hourly_predictions.reduce(
+    (maximum, hour) => Math.max(maximum, hour.estimated_wait_min),
+    1,
+  ) ?? 1;
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      listHospitals(),
+      searchHospitals('knee pain', DEFAULT_SEARCH_LOCATION.latitude, DEFAULT_SEARCH_LOCATION.longitude),
+    ])
+      .then(async ([hospitals, search]) => {
+        if (!active) return;
+        const specialties = new Set(hospitals.flatMap((hospital) => hospital.departments.map((dept) => dept.name)));
+        setDirectorySummary({ hospitals: hospitals.length, specialties: specialties.size });
+        const recommendation = search.results[0] ?? null;
+        setFeaturedResult(recommendation);
+        if (recommendation) {
+          const forecast = await getQueue(recommendation.hospital_id, recommendation.department);
+          if (active) setFeaturedForecast(forecast);
+        }
+      })
+      .catch(() => {
+        if (active) setPreviewError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleSearch(event: FormEvent) {
     event.preventDefault();
@@ -149,7 +172,7 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="care-preview" aria-label="Example hospital comparison">
+            <aside className="care-preview" aria-label="Live demonstration hospital comparison">
               <div className="care-preview-top">
                 <div>
                   <span className="preview-kicker">A clearer care plan</span>
@@ -162,67 +185,78 @@ export default function Home() {
 
               <div className="preview-location">
                 <MapPin aria-hidden="true" />
-                Delhi-NCR hospitals
-                <span className="preview-live"><span /> 12 Delhi-NCR facilities</span>
+                New Delhi demo centre
+                <span className="preview-count"><span /> {directorySummary?.hospitals ?? '—'} listed hospitals</span>
               </div>
 
-              <div className="preview-hospital preview-hospital-featured">
-                <div className="preview-hospital-heading">
-                  <div className="preview-hospital-mark">A</div>
-                  <div>
-                    <h3>AIIMS New Delhi</h3>
-                    <p>Ansari Nagar East</p>
+              {featuredResult ? (
+                <Link
+                  to={`/hospital/${featuredResult.hospital_id}?department=${encodeURIComponent(featuredResult.department)}`}
+                  className="preview-hospital preview-hospital-featured"
+                >
+                  <div className="preview-hospital-heading">
+                    <div className="preview-hospital-mark">{featuredResult.hospital_name.charAt(0)}</div>
+                    <div>
+                      <h3>{featuredResult.hospital_name}</h3>
+                      <p>{featuredResult.address}, {featuredResult.city}</p>
+                    </div>
+                    <span className="preview-recommended">Highest match</span>
                   </div>
-                  <span className="preview-recommended">Recommended</span>
+                  <div className="preview-metrics">
+                    <div>
+                      <Clock3 aria-hidden="true" />
+                      <span><strong>{featuredResult.estimated_wait_min} min</strong>estimated wait</span>
+                    </div>
+                    <div>
+                      <MapPin aria-hidden="true" />
+                      <span><strong>{featuredResult.distance_km.toFixed(1)} km</strong>approx. distance</span>
+                    </div>
+                  </div>
+                </Link>
+              ) : (
+                <div className="preview-hospital preview-hospital-featured">
+                  <h3>{previewError ? 'Live preview unavailable' : 'Finding a nearby hospital…'}</h3>
+                  <p>{previewError ? 'Start a search to check the local API.' : 'Loading the demonstration directory.'}</p>
                 </div>
-                <div className="preview-metrics">
-                  <div>
-                    <Clock3 aria-hidden="true" />
-                    <span><strong>42 min</strong>estimated wait</span>
-                  </div>
-                  <div>
-                    <MapPin aria-hidden="true" />
-                    <span><strong>3.2 km</strong>approx. distance</span>
-                  </div>
-                </div>
-              </div>
+              )}
 
-              <div className="preview-forecast">
-                <div className="preview-forecast-heading">
-                  <div>
-                    <CalendarCheck aria-hidden="true" />
-                    <span>Plan your visit</span>
+              {featuredForecast && (
+                <div className="preview-forecast">
+                  <div className="preview-forecast-heading">
+                    <div>
+                      <CalendarCheck aria-hidden="true" />
+                      <span>Plan your visit</span>
+                    </div>
+                    <span className="preview-best-time">Lowest estimate · {featuredForecast.suggested_label}</span>
                   </div>
-                  <span className="preview-best-time">Lowest estimate · 2 PM</span>
+                  <div className="preview-forecast-track" role="img" aria-label="Illustrative hourly wait forecast">
+                    {featuredForecast.hourly_predictions.map((hour) => (
+                      <span
+                        key={hour.hour}
+                        className={hour.hour === featuredForecast.suggested_hour ? 'preview-forecast-best' : ''}
+                        style={{ height: `${Math.max(12, (hour.estimated_wait_min / maxFeaturedWait) * 100)}%` }}
+                      />
+                    ))}
+                  </div>
+                  <div className="preview-forecast-labels">
+                    <span>{featuredForecast.hourly_predictions[0]?.label}</span>
+                    <span>{featuredForecast.hourly_predictions[4]?.label}</span>
+                    <span>{featuredForecast.hourly_predictions[8]?.label}</span>
+                    <span>{featuredForecast.hourly_predictions[12]?.label}</span>
+                  </div>
+                  <p className="preview-disclaimer">Illustrative queue estimates only; not live hospital data.</p>
                 </div>
-                <div className="preview-forecast-track" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span className="preview-forecast-best" />
-                  <span />
-                  <span />
-                </div>
-                <div className="preview-forecast-labels">
-                  <span>9 AM</span>
-                  <span>12 PM</span>
-                  <span>3 PM</span>
-                  <span>6 PM</span>
-                </div>
-              </div>
-              <p className="preview-disclaimer">Wait times are estimates based on simulated queue patterns.</p>
+              )}
             </aside>
           </div>
         </section>
 
         <section className="home-metrics" aria-label="QueueLess at a glance">
           <div className="page-container home-metrics-grid">
-            {METRICS.map((metric) => (
-              <div className="home-metric" key={metric.label}>
-                <strong>{metric.value}</strong>
-                <span>{metric.label}</span>
-              </div>
-            ))}
-            <Link to="/search" className="home-metrics-link">
+            <div className="home-metric"><strong>{directorySummary?.hospitals ?? '—'}</strong><span>Demo hospitals listed</span></div>
+            <div className="home-metric"><strong>{directorySummary?.specialties ?? '—'}</strong><span>Specialties in directory</span></div>
+            <div className="home-metric"><strong>13 hours</strong><span>Illustrative forecast window</span></div>
+            <Link to="/hospitals" className="home-metrics-link">
               Explore hospitals <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -272,14 +306,14 @@ export default function Home() {
               <span className="section-kicker">Your local care network</span>
               <h2>More options. A little more clarity.</h2>
               <p className="care-network-intro">
-                Explore hospital facilities, browse doctor profiles, and find the specialty that
-                fits your next step.
+                Browse the demonstration hospital directory, explore listed specialties, and compare
+                nearby options before contacting a facility.
               </p>
 
               <div className="care-network-counts">
-                <div><strong>12</strong><span>hospitals</span></div>
-                <div><strong>26</strong><span>doctor profiles</span></div>
-                <div><strong>7</strong><span>specialties</span></div>
+                <div><strong>{directorySummary?.hospitals ?? '—'}</strong><span>demo hospitals</span></div>
+                <div><strong>{directorySummary?.specialties ?? '—'}</strong><span>listed specialties</span></div>
+                <div><strong>50 km</strong><span>search radius</span></div>
               </div>
 
               <div className="care-network-specialties">
@@ -293,20 +327,14 @@ export default function Home() {
 
               <div className="care-network-doctors">
                 <div className="care-network-doctors-heading">
-                  <h3>Example doctor profiles</h3>
-                  <span>Demo directory</span>
+                  <h3>Transparent by design</h3>
+                  <span>Prototype directory</span>
                 </div>
-                {SAMPLE_DOCTORS.map((doctor) => (
-                  <div className="care-network-doctor" key={doctor.name}>
-                    <span className="care-network-doctor-avatar">{doctor.initials}</span>
-                    <strong>{doctor.name}</strong>
-                    <span>{doctor.specialty}</span>
-                  </div>
-                ))}
+                <p>Hospital, physician, fee, and queue information is illustrative and has not been verified with facilities.</p>
               </div>
 
-              <Link to="/search" className="care-network-link">
-                Explore hospitals and departments <ArrowRight aria-hidden="true" />
+              <Link to="/hospitals" className="care-network-link">
+                Browse the hospital directory <ArrowRight aria-hidden="true" />
               </Link>
             </div>
           </div>
@@ -341,7 +369,7 @@ export default function Home() {
               <h2>Find care near you.</h2>
               <p>Search symptoms or browse departments to compare available hospitals.</p>
             </div>
-            <Link to="/search" className="btn btn-primary btn-lg">
+            <Link to="/hospitals" className="btn btn-primary btn-lg">
               Browse hospitals <ArrowRight aria-hidden="true" />
             </Link>
           </div>

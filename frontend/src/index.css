@@ -655,7 +655,7 @@ body {
     color: #6486b0;
   }
 
-  .preview-live {
+  .preview-count {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -664,7 +664,7 @@ body {
     font-size: 0.7rem;
   }
 
-  .preview-live > span {
+  .preview-count > span {
     width: 0.45rem;
     height: 0.45rem;
     border-radius: 50%;
@@ -2311,4 +2311,63 @@ body {
     animation: none;
     stroke-dasharray: none;
   }
+}
+
+.mobile-navigation {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.75rem 1.25rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+.mobile-navigation a {
+  padding: 0.8rem 0.65rem;
+  border-radius: 0.5rem;
+  color: inherit;
+  font-size: 0.9rem;
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.mobile-navigation a:hover,
+.mobile-navigation a:focus-visible {
+  background: rgba(148, 163, 184, 0.12);
+  outline: none;
+}
+
+.mobile-navigation a:focus-visible,
+.mobile-navigation a:focus-visible:hover {
+  outline: 2px solid #60a5fa;
+  outline-offset: -2px;
+}
+
+.mobile-navigation-dark {
+  background: #0c1a2e;
+  color: #e2e8f0;
+}
+
+.mobile-navigation-light {
+  background: #fff;
+  color: #334155;
+}
+
+@media (min-width: 768px) {
+  .mobile-navigation {
+    display: none;
+  }
+}
+
+.preview-hospital {
+  color: inherit;
+  text-decoration: none;
+}
+
+.preview-hospital:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
 }
