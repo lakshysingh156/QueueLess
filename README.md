@@ -1,39 +1,37 @@
 # QueueLess
 
-QueueLess is a healthcare-navigation **academic MVP**. It helps people explore a demonstration hospital directory, route a symptom phrase to a department, compare nearby facilities, and inspect illustrative queue forecasts.
+QueueLess is a demonstration hospital directory and care-navigation app. It lets people search for a department, compare nearby listed hospitals, and view estimated queues.
 
-> **Important:** QueueLess is not a medical service. It does not diagnose, triage, book appointments, or report live availability. Hospital, clinician, fee, phone, and emergency-service records in this prototype are unverified demonstration data. Queue estimates and rankings are synthetic. For a medical emergency in India, call **108** or **112**; do not wait for this app.
+> **Notice:** QueueLess is not a medical service. It does not diagnose, assess emergencies, book appointments, or report live availability. Hospital, clinician, fee, phone, and emergency-service details are unverified demonstration data. Queue estimates and rankings are synthetic. For a medical emergency in India, call **108** or **112**; do not wait for this app.
 
 ## Run on Windows
 
-Requirements: **Python 3.11+**, **Node.js 20.19+ or 22.12+**, and npm.
+Requirements: **Python 3.11 or newer**, **Node.js 20.19+ or 22.12+**, and npm.
 
-Open PowerShell in the project folder and run:
+From the project directory, run:
 
 ```powershell
 .\scripts\run.ps1
 ```
 
-If PowerShell blocks local scripts, allow scripts for this terminal only, then run it:
+If PowerShell blocks the script, allow scripts for the current terminal and run it again:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\run.ps1
 ```
 
-The launcher creates `backend\venv` if needed, installs missing dependencies, prepares the local SQLite demonstration database, and starts the API and frontend together. It checks that both services are ready and stops them when you press **Ctrl+C**. It does not require PostgreSQL or separate terminal windows. The local database is kept at `backend\queueless.db` and ignored by Git.
-
-Open:
+The launcher creates `backend\venv` if needed, installs the runtime dependencies, prepares the SQLite demonstration database, and starts the API and web app. Press **Ctrl+C** in that terminal to stop both services. The database is stored at `backend\queueless.db`; it does not require PostgreSQL.
 
 - Web app: <http://127.0.0.1:5173>
-- Interactive API docs: <http://127.0.0.1:8000/docs>
+- API documentation: <http://127.0.0.1:8000/docs>
 - API health: <http://127.0.0.1:8000/api/health>
 
-The launcher owns ports **8000** and **5173**. If it reports that a port is already in use, stop the other service using that port and rerun the command.
+The launcher uses ports **8000** and **5173**. If either port is already in use, stop the other service before running the launcher.
 
 ## Screenshots
 
-The screenshots below show the desktop-first care search and hospital comparison experience. All facilities and estimates shown are demonstration data.
+The screenshots show the hospital search and comparison pages. All facilities and estimates are demonstration data.
 
 ### Find care
 
@@ -43,7 +41,17 @@ The screenshots below show the desktop-first care search and hospital comparison
 
 ![QueueLess search results with wait, distance, and consultation-fee comparisons](docs/screenshots/search-results.png)
 
-### Optional: run services separately
+## Sign in
+
+Create an account with your name, email address, and a password of at least eight characters. You can also select **Continue with demo account** to sign in as **QueueLess Demo** without a password. The signed-in name appears in the workspace and public navigation.
+
+Passwords are stored as salted scrypt hashes. The browser keeps the session token in session storage, and the API session expires after seven days. Signing out revokes the session. The demo account is shared. Do not enter medical or other sensitive information.
+
+This is basic sign-in for a local demonstration, not production identity management. It does not include email verification, password recovery, or account roles.
+
+## Run the services separately
+
+In one PowerShell terminal:
 
 ```powershell
 Set-Location backend
@@ -58,33 +66,29 @@ Set-Location frontend
 npm run dev
 ```
 
-The launcher is preferred because it also checks requirements and prepares the demo data.
+The launcher is preferred for first-time setup because it also checks requirements and prepares the database.
 
-## Sign in and demo account
-
-Create an account with your name, email, and a password of at least eight characters, or choose **Continue with demo account** to enter as **QueueLess Demo** without a password. Signed-in names appear in the workspace and public navigation. Passwords are stored as salted scrypt hashes; browser sessions are kept in session storage and expire after seven days. The demo account is shared and is intended only for exploring this prototype.
-
-## Main user journey
+## Main user flow
 
 1. Search for a supported symptom or browse the hospital directory.
-2. Select an approximate search area or explicitly grant device-location permission.
+2. Select an approximate search area, or grant permission to use device location.
 3. Compare nearby listed facilities by estimated queue, straight-line distance, and fee range.
-4. Open a hospital profile to review listed departments and an hourly demonstration forecast.
-5. Use the emergency page for call guidance; emergency directory flags are not independently verified.
+4. Open a hospital profile to review listed departments and an hourly queue estimate.
+5. Use the emergency page for contact guidance. Emergency-service listings are unverified.
 
-The included demo seed provides 28 directory entries: existing example profiles plus 12 explicitly named synthetic QueueLess care centres. Queue projections use a transparent workload heuristic:
+The seed data contains 28 directory entries, including 12 synthetic QueueLess care centres. Queue estimates use this simplified calculation:
 
 ```text
 estimated wait = 5-minute intake buffer + ceil(60 × queue size / assumed hourly service capacity)
 ```
 
-The hourly queue starts from an illustrative daily demand curve, adjusted by a stable hospital factor and a department demand factor. Service capacity is also a synthetic per-department assumption. Neither the directory nor this calculation reflects verified staffing, historical hospital feeds, or live queue conditions.
+The queue calculation uses a synthetic daily demand curve, facility and department factors, and assumed service capacity. It does not use staffing levels, hospital history, or live queue data.
 
-The current symptom rules are transparent keyword routing—not a clinical model. Unknown phrases fall back to General Medicine. A symptom alone cannot establish a diagnosis or whether care is urgent; call emergency services when needed.
+Search phrases are matched to departments using keyword rules. Unmatched phrases use General Medicine. These rules do not provide a diagnosis or determine whether care is urgent.
 
-## Validation commands
+## Validation
 
-From the project root:
+Run these commands from the project directory:
 
 ```powershell
 npm --prefix frontend run build
@@ -94,28 +98,26 @@ Set-Location backend
 .\venv\Scripts\python.exe -m pytest tests -v
 ```
 
-## Project structure and maintenance
+## Project structure
 
 ```text
-backend/       FastAPI API, SQLAlchemy models, idempotent demo seeder, and tests
-frontend/      React + TypeScript application and workspace styles
-docs/          Architecture, design, decisions, testing notes, and screenshots
-scripts/       Windows PowerShell launcher for the complete local demo
+backend/       FastAPI API, SQLAlchemy models, database seeder, and tests
+frontend/      React and TypeScript application
+docs/          Architecture, design, testing notes, and screenshots
+scripts/       Windows PowerShell launcher
 ```
 
-For routine changes, install frontend dependencies from the lockfile with `npm --prefix frontend ci`, run the frontend build and lint checks, and run backend tests from `backend` using the virtual environment commands above. The demo seeder is safe to rerun: it adds missing sample records without deleting existing data. The launcher selects the local SQLite database automatically.
+The seeder can be run again to add missing sample records. It does not delete existing data. The launcher selects the local SQLite database.
 
-Keep local configuration (`backend/.env`), the generated database (`backend/queueless.db`), virtual environments, and dependency/build output out of commits. Only update `.env.example` with placeholder configuration—never credentials. Review the [architecture](docs/ARCHITECTURE.md), [design system](docs/DESIGN_SYSTEM.md), and [testing guide](docs/TESTING.md) when changing the corresponding project behavior.
+Keep `backend/.env`, `backend/queueless.db`, virtual environments, and build output out of commits. Use placeholder values in `.env.example`; do not store credentials there.
 
 ## Stack and design
 
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4, React Router 7, Lucide
-- **API:** FastAPI, Pydantic, SQLAlchemy
-- **Default database:** SQLite for a reproducible local demo; `DATABASE_URL` can point at another SQLAlchemy-supported database
-- **Design:** desktop-first dark care workspace, open dashboard and directory layouts, accessible controls, and clear error/empty states
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, React Router, and Lucide
+- **API:** FastAPI, Pydantic, and SQLAlchemy
+- **Database:** SQLite by default; `DATABASE_URL` can select another SQLAlchemy-supported database
+- **Interface:** Light theme across public pages and the workspace
 
-## Scope and next production steps
+## Limitations
 
-The MVP includes the landing page, symptom search, hospital directory with filters, ranked results, hospital profiles, department selection, hourly wait visualization, location consent, emergency calling guidance, and basic account sign-in. It is not production identity management and must not be used to store health information.
-
-This repository is suitable for an academic demonstration, **not deployment for patient care**. Production use would require, at minimum, verified provider data and update agreements, real queue/availability integrations, clinically reviewed safety flows, location/privacy controls, authentication and authorization, audit/security review, database migrations, monitoring, accessibility testing, and end-to-end testing. Do not enter personal health information.
+QueueLess is for demonstration use only, not for patient care or public deployment. Before deployment, it would need verified hospital data, maintained availability and queue integrations, reviewed emergency guidance, stronger account management, database migrations, monitoring, privacy controls, and security testing. Do not enter personal health information.
