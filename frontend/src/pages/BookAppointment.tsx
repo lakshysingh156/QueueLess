@@ -108,48 +108,46 @@ export default function BookAppointment() {
 
   if (booking) {
     return (
-      <div className="site-wrapper bg-[#fbfcfd] min-h-screen">
+      <div className="site-wrapper workspace-page booking-workspace">
         <Navbar />
-        <main className="page-container py-16 sm:py-24 flex flex-col items-center">
-          <div className="w-full max-w-xl mx-auto space-y-8">
-            {/* Confirmation Pill */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100/90 text-emerald-600 mb-5 ring-8 ring-emerald-50">
+        <main className="workspace-main booking-page booking-confirmation-page">
+          <div className="booking-confirmation-content">
+            <div className="booking-confirmation-heading">
+              <div className="booking-confirmation-icon">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <span className="badge badge-green text-xs mb-2">Confirmed Booking</span>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Appointment Scheduled</h1>
-              <p className="mt-2 text-sm text-slate-600">
+              <h1>Appointment Scheduled</h1>
+              <p>
                 Your consultation token is confirmed. An appointment slip has been filed in your patient dashboard.
               </p>
             </div>
 
-            {/* Slip Card */}
-            <div className="card shadow-md border border-slate-200 overflow-hidden">
-              <div className="bg-slate-900 text-white p-7 flex items-center justify-between">
+            <div className="card booking-slip">
+              <div className="booking-slip-header">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Booking Token</p>
                   <p className="text-3xl font-mono font-bold tracking-wider text-blue-400 mt-1">{booking.referenceId}</p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <span className="booking-slip-status">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active OPD Slot
                   </span>
                 </div>
               </div>
 
-              <div className="p-8 space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">{booking.hospitalName}</h3>
+              <div className="booking-slip-body">
+                <div className="booking-slip-hospital">
+                  <h2>{booking.hospitalName}</h2>
                   <div className="flex items-center gap-2 mt-1.5 text-xs text-slate-500">
                     <Stethoscope className="w-4 h-4 text-blue-600" />
                     <span className="font-semibold text-slate-700">{booking.department} Department</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 py-5 border-y border-slate-100 text-sm">
-                  <div>
-                    <span className="text-xs text-slate-400 block mb-1">Consultation Date</span>
+                <div className="booking-slip-details">
+                  <div className="booking-slip-detail">
+                    <span>Consultation Date</span>
                     <strong className="text-slate-900 font-bold">
                       {new Date(booking.date).toLocaleDateString('en-IN', {
                         weekday: 'short',
@@ -159,18 +157,18 @@ export default function BookAppointment() {
                       })}
                     </strong>
                   </div>
-                  <div>
-                    <span className="text-xs text-slate-400 block mb-1">Assigned Window</span>
+                  <div className="booking-slip-detail">
+                    <span>Assigned Window</span>
                     <strong className="text-blue-700 font-bold flex items-center gap-1">
                       <Clock className="w-4 h-4" /> {booking.time}
                     </strong>
                   </div>
-                  <div>
-                    <span className="text-xs text-slate-400 block mb-1">Patient Name</span>
+                  <div className="booking-slip-detail">
+                    <span>Patient Name</span>
                     <span className="text-slate-800 font-semibold">{booking.name}</span>
                   </div>
-                  <div>
-                    <span className="text-xs text-slate-400 block mb-1">Contact Number</span>
+                  <div className="booking-slip-detail">
+                    <span>Contact Number</span>
                     <span className="text-slate-800 font-semibold">{booking.phone}</span>
                   </div>
                 </div>
@@ -182,7 +180,7 @@ export default function BookAppointment() {
                   </div>
                 )}
 
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50/60 border border-blue-100 text-xs text-blue-900">
+                <div className="booking-slip-instructions">
                   <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-bold">Patient OPD Instructions</p>
@@ -194,14 +192,13 @@ export default function BookAppointment() {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
-              <Link to="/dashboard" className="btn btn-primary w-full sm:flex-1 py-3.5 text-center justify-center font-semibold text-sm">
+            <div className="booking-confirmation-actions">
+              <Link to="/dashboard" className="btn btn-primary">
                 Go to My Appointments
               </Link>
               <Link
                 to={`/hospital/${id}?department=${encodeURIComponent(department)}`}
-                className="btn btn-secondary w-full sm:w-auto py-3.5 px-6 text-center justify-center font-semibold text-sm"
+                className="btn btn-secondary"
               >
                 Return to Hospital
               </Link>
@@ -213,12 +210,11 @@ export default function BookAppointment() {
   }
 
   return (
-    <div className="site-wrapper bg-[#fbfcfd] min-h-screen">
+    <div className="site-wrapper workspace-page booking-workspace">
       <Navbar />
 
-      <main className="page-container py-12 sm:py-16">
-        <div className="max-w-5xl mx-auto space-y-10">
-          {/* Breadcrumb */}
+      <main className="workspace-main booking-page">
+        <div className="booking-content">
           <nav aria-label="Breadcrumb" className="workspace-breadcrumb page-breadcrumb">
             <Link to="/" className="hover:text-slate-700 transition-colors">Home</Link>
             <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
@@ -232,44 +228,40 @@ export default function BookAppointment() {
             <span className="text-slate-700 font-medium">Book Appointment</span>
           </nav>
 
-          {/* Page Header (Spacious, matching Hospitals Page) */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
+          <header className="booking-heading">
+            <div className="booking-heading-badges">
               <span className="badge badge-blue text-xs font-semibold py-1 px-3">
                 <Stethoscope className="w-3.5 h-3.5 mr-1" />
                 {department}
               </span>
-              <span className="badge badge-green text-xs font-medium">Online OPD Queue Booking</span>
+              <span className="badge badge-green text-xs font-medium">Online OPD booking</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">{hospitalName}</h1>
-            <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
+            <h1>{hospitalName}</h1>
+            <p>
               Schedule your outpatient consultation slot to minimize on-site waiting. Your details are reserved directly in the care workflow.
             </p>
-          </div>
+          </header>
 
-          {/* Main Grid: Form + Sticky Summary */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-            {/* Left Form: 7 cols */}
-            <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-10">
-              {/* Section 1: Patient Information */}
-              <div className="card p-8 sm:p-10 space-y-6 border border-slate-200/90 shadow-sm">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+          <div className="booking-layout">
+            <form onSubmit={handleSubmit} className="booking-form">
+              <section className="card booking-section">
+                <div className="booking-section-header">
+                  <div className="booking-section-title">
+                    <span>
                       1
-                    </div>
+                    </span>
                     <div>
-                      <h2 className="text-lg font-bold text-slate-900">Patient Details</h2>
-                      <p className="text-xs text-slate-500">Who is this consultation for?</p>
+                      <h2>Patient details</h2>
+                      <p>Who is this consultation for?</p>
                     </div>
                   </div>
                   <User className="w-5 h-5 text-slate-400" />
                 </div>
 
-                <div className="space-y-5">
-                  <div>
-                    <label htmlFor="book-name" className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                      Full Name <span className="text-rose-500">*</span>
+                <div className="booking-form-fields">
+                  <div className="booking-form-field">
+                    <label htmlFor="book-name">
+                      Full name <span>*</span>
                     </label>
                     <div className="relative">
                       <User className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -280,14 +272,14 @@ export default function BookAppointment() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Virat Kohli"
-                        className="input input-search py-3.5 text-sm rounded-xl"
+                        className="input input-search"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="book-phone" className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                      Mobile Phone Number <span className="text-rose-500">*</span>
+                  <div className="booking-form-field">
+                    <label htmlFor="book-phone">
+                      Mobile phone number <span>*</span>
                     </label>
                     <div className="relative">
                       <Phone className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -299,15 +291,15 @@ export default function BookAppointment() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+91 98765 43210"
-                        className="input input-search py-3.5 text-sm rounded-xl"
+                        className="input input-search"
                       />
                     </div>
-                    <span className="text-[11px] text-slate-400 mt-1.5 block">Used for booking SMS alerts &amp; OPD queue check-in.</span>
+                    <span>Used for booking alerts and OPD queue check-in.</span>
                   </div>
 
-                  <div>
-                    <label htmlFor="book-symptoms" className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                      Symptoms or Reason for Visit <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                  <div className="booking-form-field">
+                    <label htmlFor="book-symptoms">
+                      Symptoms or reason for visit <span className="booking-optional">(optional)</span>
                     </label>
                     <textarea
                       id="book-symptoms"
@@ -315,30 +307,29 @@ export default function BookAppointment() {
                       value={symptoms}
                       onChange={(e) => setSymptoms(e.target.value)}
                       placeholder="Briefly describe your symptoms (e.g. persistent fever for 3 days, joint pain...)"
-                      className="input py-3 px-4 text-sm rounded-xl resize-none"
+                      className="input"
                     />
                   </div>
                 </div>
-              </div>
+              </section>
 
-              {/* Section 2: Date & Slot Selection */}
-              <div className="card p-8 sm:p-10 space-y-6 border border-slate-200/90 shadow-sm">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+              <section className="card booking-section">
+                <div className="booking-section-header">
+                  <div className="booking-section-title">
+                    <span>
                       2
-                    </div>
+                    </span>
                     <div>
-                      <h2 className="text-lg font-bold text-slate-900">Select Date &amp; Time Window</h2>
-                      <p className="text-xs text-slate-500">Choose when you plan to visit</p>
+                      <h2>Select date &amp; time</h2>
+                      <p>Choose when you plan to visit.</p>
                     </div>
                   </div>
                   <CalendarCheck className="w-5 h-5 text-slate-400" />
                 </div>
 
-                <div>
-                  <label htmlFor="book-date" className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                    Consultation Date
+                <div className="booking-form-field">
+                  <label htmlFor="book-date">
+                    Consultation date
                   </label>
                   <input
                     id="book-date"
@@ -348,19 +339,18 @@ export default function BookAppointment() {
                     max={getMaxDate()}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="input py-3.5 px-4 text-sm rounded-xl w-full"
+                    className="input"
                   />
                 </div>
 
-                {/* Morning Slots */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Morning Sessions (9 AM – 1 PM)
+                <div className="booking-slot-group">
+                  <div className="booking-slot-heading">
+                    <span>
+                      <Sparkles className="w-4 h-4 text-amber-500" /> Morning sessions
                     </span>
-                    <span className="text-[11px] text-slate-400 font-medium">Standard OPD</span>
+                    <small>9 AM – 1 PM</small>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="booking-slot-grid">
                     {MORNING_SLOTS.map((slot) => {
                       const isSelected = time === slot;
                       return (
@@ -368,11 +358,7 @@ export default function BookAppointment() {
                           key={slot}
                           type="button"
                           onClick={() => { setTime(slot); setError(''); }}
-                          className={`py-3 px-3 rounded-xl border text-xs font-bold transition-all duration-150 text-center ${
-                            isSelected
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-500/20'
-                              : 'bg-white text-slate-700 border-slate-200 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/40'
-                          }`}
+                          className={`booking-slot${isSelected ? ' is-selected' : ''}`}
                         >
                           {slot}
                         </button>
@@ -381,15 +367,14 @@ export default function BookAppointment() {
                   </div>
                 </div>
 
-                {/* Afternoon Slots */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-blue-500" /> Afternoon Sessions (2 PM – 6 PM)
+                <div className="booking-slot-group">
+                  <div className="booking-slot-heading">
+                    <span>
+                      <Clock className="w-4 h-4 text-blue-500" /> Afternoon sessions
                     </span>
-                    <span className="text-[11px] text-emerald-600 font-bold">Shorter Queue Windows</span>
+                    <small>2 PM – 6 PM</small>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="booking-slot-grid">
                     {AFTERNOON_SLOTS.map((slot) => {
                       const isSelected = time === slot;
                       return (
@@ -397,11 +382,7 @@ export default function BookAppointment() {
                           key={slot}
                           type="button"
                           onClick={() => { setTime(slot); setError(''); }}
-                          className={`py-3 px-3 rounded-xl border text-xs font-bold transition-all duration-150 text-center ${
-                            isSelected
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-500/20'
-                              : 'bg-white text-slate-700 border-slate-200 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50/40'
-                          }`}
+                          className={`booking-slot${isSelected ? ' is-selected' : ''}`}
                         >
                           {slot}
                         </button>
@@ -411,25 +392,24 @@ export default function BookAppointment() {
                 </div>
 
                 {error && (
-                  <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700">
+                  <div className="booking-error" role="alert">
                     {error}
                   </div>
                 )}
-              </div>
+              </section>
 
-              {/* Submit Bar */}
-              <div className="flex items-center gap-4 pt-2">
+              <div className="booking-form-actions">
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="btn btn-secondary py-3.5 px-6 text-sm font-semibold"
+                  className="btn btn-secondary"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                  <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn btn-primary flex-1 py-3.5 px-6 text-sm font-semibold justify-center shadow-md shadow-blue-500/20"
+                  className="btn btn-primary"
                 >
                   {isSubmitting ? 'Reserving Token…' : 'Confirm Consultation Booking'}
                   {!isSubmitting && <CalendarCheck className="w-4 h-4 ml-2" />}
@@ -437,59 +417,55 @@ export default function BookAppointment() {
               </div>
             </form>
 
-            {/* Right Column: 5 cols Sticky Overview */}
-            <aside className="lg:col-span-5 sticky top-24 space-y-6">
-              <div className="card p-8 border border-slate-200/90 shadow-sm space-y-6">
-                <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-                  <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-lg shrink-0">
+            <aside className="booking-summary">
+              <div className="card booking-summary-card">
+                <div className="booking-summary-hospital">
+                  <div>
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-slate-900 text-base leading-tight truncate">{hospitalName}</h3>
-                    <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                    <h2>{hospitalName}</h2>
+                    <p>
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Delhi-NCR Regional Directory
                     </p>
                   </div>
                 </div>
 
-                {/* Department details */}
-                <div className="rounded-xl bg-slate-50 p-5 border border-slate-100 space-y-3 text-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Department:</span>
-                    <strong className="text-slate-900 font-bold">{department}</strong>
+                <div className="booking-summary-details">
+                  <div className="booking-summary-row">
+                    <span>Department</span>
+                    <strong>{department}</strong>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Consultation Date:</span>
-                    <strong className="text-slate-900 font-bold">
+                  <div className="booking-summary-row">
+                    <span>Consultation date</span>
+                    <strong>
                       {date ? new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                     </strong>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Selected Window:</span>
+                  <div className="booking-summary-row">
+                    <span>Selected window</span>
                     <strong className={time ? 'text-blue-700 font-bold' : 'text-slate-400'}>
                       {time || 'Select a time slot'}
                     </strong>
                   </div>
                 </div>
 
-                {/* Summary Points */}
-                <div className="space-y-3.5 pt-2 text-xs text-slate-600">
-                  <div className="flex items-start gap-3">
+                <div className="booking-summary-points">
+                  <div>
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <span>Instant digital token generation with zero registration fee.</span>
                   </div>
-                  <div className="flex items-start gap-3">
+                  <div>
                     <Clock className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                     <span>Real-time queue tracking enabled on the day of visit.</span>
                   </div>
-                  <div className="flex items-start gap-3">
+                  <div>
                     <FileText className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
                     <span>Government scheme (Ayushman Bharat / DAK) eligibility verified on arrival.</span>
                   </div>
                 </div>
 
-                {/* Security note */}
-                <div className="pt-5 border-t border-slate-100 flex items-center gap-2 text-[11px] text-slate-400">
+                <div className="booking-summary-security">
                   <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
                   <span>Your contact details are encrypted and kept strictly confidential.</span>
                 </div>

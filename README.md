@@ -1,164 +1,145 @@
-# QueueLess — Intelligent Healthcare Navigation & Queue Optimization Platform
+# QueueLess
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/lakshysingh156/QueueLess)
-[![Tests](https://img.shields.io/badge/tests-35%20passed-success.svg)](https://github.com/lakshysingh156/QueueLess)
-[![Frontend](https://img.shields.io/badge/frontend-React%2018%20%7C%20TypeScript%20%7C%20Vite%20%7C%20Tailwind-blue.svg)](https://github.com/lakshysingh156/QueueLess)
-[![Backend](https://img.shields.io/badge/backend-FastAPI%20%7C%20SQLAlchemy%20%7C%20Pydantic-darkblue.svg)](https://github.com/lakshysingh156/QueueLess)
-[![Architecture](https://img.shields.io/badge/architecture-REST%20%7C%20MCDA%20Ranking%20%7C%20Deterministic%20Queueing-purple.svg)](https://github.com/lakshysingh156/QueueLess)
+QueueLess is a healthcare navigation demo for finding hospital departments, comparing nearby listings, and reviewing estimated queue times. It includes a React web app and a FastAPI service backed by SQLite.
 
-QueueLess is an end-to-end healthcare navigation and outpatient (OPD) queue optimization system designed to tackle hospital overcrowding. By synthesizing natural language symptom search, multi-criteria hospital ranking, hourly queue wait predictions, and direct appointment scheduling, QueueLess helps patients answer two critical questions:
+> **Demo data:** Hospital details, consultation fees, ratings, availability, and queue estimates are illustrative. QueueLess is not connected to hospital scheduling systems and is not medical advice.
 
-> **"Where should I go for my specific health concern, and what is the optimal time to visit?"**
+## Screenshots
 
----
+### Find care
 
-## 1. System Architecture & Workflow
+![QueueLess Find Care page](docs/screenshots/find-care.png)
 
-```mermaid
-flowchart TD
-    User([Patient / User]) -->|1. Search Symptom / Select Specialty| UI[Vite + React 18 TypeScript Frontend]
-    UI -->|2. Query with Geolocation| API[FastAPI High-Performance REST Backend]
-    
-    subgraph Routing & Ranking Core
-        API --> Engine[Symptom-to-Department Taxonomy Mapper]
-        Engine --> MCDA[Multi-Criteria Decision Analysis Engine]
-        MCDA -->|Calculates Composite Score| Ranking[Hospital Ranking: Wait 40% + Distance 35% + Fee 25%]
-    end
-    
-    subgraph Predictive Queue Engine
-        Ranking --> QueueMod[Deterministic Hourly Queue Model]
-        QueueMod --> Forecast[Hourly Wait Predictions: 8 AM – 8 PM]
-        Forecast --> OptimalTime[Off-Peak Visit Recommendation]
-    end
-    
-    subgraph Database & Persistence
-        API <--> DB[(SQL Database / SQLite / PostgreSQL)]
-    end
-    
-    subgraph Booking & Patient Management
-        UI -->|3. Schedule Consultation| Booking[OPD Token Scheduling Workflow]
-        Booking --> Token[Unique Reference Token QL-XXXXXX]
-        Token --> Dashboard[Patient Self-Service Dashboard /dashboard]
-    end
-    
-    OptimalTime --> UI
-    Dashboard --> User
+### Search results
+
+![QueueLess hospital search results](docs/screenshots/search-results.png)
+
+## Features
+
+- Search by symptom or department and review matching hospital listings.
+- Compare results by estimated wait, distance, and listed consultation fee.
+- View department, facility, and queue information for each hospital.
+- Review deterministic hourly wait estimates and suggested visit windows.
+- Create an account, sign in, or use the demo sign-in option.
+- Use the appointment form to create a confirmation token and view it on the patient dashboard.
+- Browse the directory across Delhi-NCR, Chandigarh, and Patiala.
+
+## How it works
+
+The browser app is built with React and TypeScript. It sends directory, search, queue, and account requests to the FastAPI backend. The backend reads the local SQLite database, which is populated with sample records by the setup script.
+
+```text
+React app (Vite)  →  FastAPI (/api)  →  SQLAlchemy  →  SQLite
 ```
 
----
+Appointment confirmations are currently stored in the browser rather than submitted to a hospital.
 
-## 2. Key Features & Engineering Highlights
+## Technology
 
-### 🔍 Intelligent Department Routing
-- Maps colloquial symptom expressions (e.g. *"chest tightness"*, *"knee inflammation"*, *"blurry vision"*) to standardized clinical departments (**Cardiology**, **Orthopedics**, **Ophthalmology**, **Dermatology**, **General Medicine**).
-- Includes strict safety keywords that automatically prioritize emergency-enabled facilities and surface immediate Indian emergency hotline prompts (**108** Ambulance / **112** National Emergency).
+- **Frontend:** React 19, TypeScript, Vite 8, Tailwind CSS 4, React Router 7
+- **Backend:** Python 3.11+, FastAPI, Pydantic, SQLAlchemy, Uvicorn
+- **Database:** SQLite by default
+- **Tests and linting:** pytest, HTTPX, TypeScript, Oxlint
 
-### ⚖️ Multi-Criteria Decision Analysis (MCDA) Ranking
-Hospitals are evaluated dynamically using a balanced mathematical objective function:
-$$\text{Score} = 0.40 \times \bar{W} + 0.35 \times \bar{D} + 0.25 \times \bar{F}$$
-- $\bar{W}$: Normalized estimated waiting time in minutes
-- $\bar{D}$: Haversine geodesic distance in kilometers
-- $\bar{F}$: Normalized baseline consultation fee
+## Requirements
 
-### ⏱️ Dynamic Hourly Queue Prediction
-- Predicts crowd congestion across operating windows (8:00 AM to 8:00 PM).
-- Incorporates deterministic hospital demand multipliers and department service rates:
-  $$\text{Estimated Wait (min)} = \text{Intake Buffer (5 min)} + \left\lceil \frac{60 \times \text{Current Queue}}{\text{Hourly Service Capacity}} \right\rceil$$
-- Automatically calculates and highlights the individual hospital's lowest-wait window (e.g. 10:00 AM, 12:00 PM, 3:30 PM).
+The Windows launcher requires:
 
-### 📅 Direct OPD Token Scheduling
-- Built-in consultation reservation interface (`/hospital/:id/book`).
-- Morning and afternoon time-slot windows with instant confirmation tokens (`QL-XXXXXX`).
-- Zero booking overhead with verified intake instructions.
+- PowerShell
+- Python 3.11 or newer
+- Node.js 20.19+ or 22.12+ (with npm)
 
-### 👤 Centralized Patient Dashboard
-- Dedicated patient workspace (`/dashboard`) managing active consultations, past clinical records, and hospital directions.
-- Seamless account sync with persistent local session caching.
+## Run locally on Windows
 
-### 🏥 Comprehensive Regional Directory
-- Pre-seeded with 28 premier public and private medical institutions across **Delhi-NCR**, **Chandigarh**, and **Patiala** (e.g. AIIMS, Safdarjung Hospital, Fortis Vasant Kunj, BLK-Max Super Speciality Hospital, Manipal Hospital Dwarka, PGIMER).
-
----
-
-## 3. Technology Stack
-
-| Layer | Technologies | Key Libraries |
-| :--- | :--- | :--- |
-| **Frontend UI/UX** | React 18, TypeScript, Vite | Tailwind CSS v4, Lucide React, React Router v6 |
-| **Backend API** | Python 3.11–3.13, FastAPI | Pydantic v2, SQLAlchemy 2.0, Uvicorn |
-| **Database** | SQLite (Default for quick demo) / PostgreSQL | Alembic Migrations |
-| **Testing & QA** | Pytest, HTTPX, TypeScript Compiler (`tsc`) | Starlette TestClient |
-
----
-
-## 4. Quick Start & Execution
-
-### Windows (Single-Command Launcher)
-From the project root:
+Clone the repository, open PowerShell in its root folder, and run:
 
 ```powershell
+git clone https://github.com/lakshysingh156/QueueLess.git
+cd QueueLess
 .\scripts\run.ps1
 ```
 
-If PowerShell script execution is restricted, bypass execution policy for the process:
+The launcher creates the Python environment if needed, installs missing dependencies, prepares the sample database, and starts the web app and API. Press **Ctrl+C** in that terminal to stop both services. Ports `8000` and `5173` must be available.
+
+If PowerShell blocks the script, allow scripts for the current process and run it again:
+
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\scripts\run.ps1
 ```
 
-### Manual Execution
+When the services are ready:
 
-#### Terminal 1 — Backend (FastAPI)
+- Web app: <http://127.0.0.1:5173>
+- API documentation: <http://127.0.0.1:8000/docs>
+- API health check: <http://127.0.0.1:8000/api/health>
+
+## Run services manually
+
+Open two PowerShell terminals from the repository root.
+
+### Backend
+
 ```powershell
 cd backend
-.\venv\Scripts\activate
-$env:DATABASE_URL = "sqlite:///./queueless.db"
-python -m uvicorn app.main:app --reload --port 8000
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python seed.py
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
-- API Documentation (Swagger): <http://127.0.0.1:8000/docs>
-- Health Check: <http://127.0.0.1:8000/api/health>
 
-#### Terminal 2 — Frontend (Vite)
+### Frontend
+
 ```powershell
 cd frontend
-npm install
-npm run dev
+npm ci
+npm run dev -- --host 127.0.0.1
 ```
-- Web Application: <http://127.0.0.1:5173>
 
----
+## Accounts and saved appointments
 
-## 5. Automated Verification & Testing
+Use the sign-in page to create an account or choose the demo sign-in option. Account authentication is handled by the backend.
 
-The project includes an automated test suite covering authentication, symptom-to-department taxonomy mapping, MCDA scoring, and queue prediction:
+Appointment tokens are stored in browser `localStorage` on the device where they were created. They are not synchronized between devices or submitted to a hospital, and no SMS notifications are sent.
+
+## Data and safety notes
+
+- Queue and wait-time values are generated from sample data; they are not live hospital feeds.
+- Hospital details, fees, ratings, and availability may be outdated or inaccurate. Confirm them directly with the hospital.
+- Browser location is optional and is requested only when **Use my location** is selected.
+- For a medical emergency in India, call **108** or **112**. Do not wait for app results.
+
+## Tests and checks
+
+### Backend tests
 
 ```powershell
-# Run backend test suite
 cd backend
-.\venv\Scripts\pytest tests/ -v
-
-# Run frontend production build & type checks
-cd ../frontend
-npm run build
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
 ```
 
-**Results:**
-- ✅ **Backend:** 35 passed, 0 failed
-- ✅ **Frontend:** 0 TypeScript errors, clean Vite production bundle
+### Frontend build and lint
 
----
+```powershell
+cd frontend
+npm ci
+npm run build
+npm run lint
+```
 
-## 6. Academic Project Evaluation Matrix
+## Project layout
 
-| Criterion | Target Requirement | Implementation Status |
-| :--- | :--- | :---: |
-| **Problem Formulation** | Real-world urban healthcare queuing bottleneck | **Exemplary** (Delhi-NCR regional context) |
-| **System Architecture** | Decoupled client-server architecture with REST endpoints | **Exemplary** (FastAPI + React 18 TS) |
-| **Algorithm Implementation** | Mathematically sound MCDA ranking & queue modeling | **Exemplary** (Deterministic queueing + Haversine distance) |
-| **UI/UX Excellence** | Clean, responsive, spacious medical interface | **Exemplary** (Open layout, zero clutter) |
-| **Code Hygiene** | Strong typing, zero synthetic "demo" clutter, automated tests | **Exemplary** (35 test cases passing) |
-
----
-
-## 7. License
-Developed for academic assessment and portfolio demonstration. Distributed under the MIT License.
+```text
+backend/
+  app/                 API routes, database models, and search/queue logic
+  tests/               Backend tests
+  seed.py              Sample database setup
+frontend/
+  src/components/      Shared interface components
+  src/pages/           App pages
+scripts/
+  run.ps1              Windows setup and development launcher
+docs/screenshots/      README screenshots
+```
