@@ -8,6 +8,8 @@ import HospitalDetail from './pages/HospitalDetail';
 import Emergency from './pages/Emergency';
 import Login from './pages/Login';
 import HospitalsPage from './pages/HospitalsPage';
+import BookAppointment from './pages/BookAppointment';
+import PatientDashboard from './pages/PatientDashboard';
 import { AuthProvider } from './auth';
 
 export default function App() {
@@ -21,8 +23,10 @@ export default function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/results" element={<Results />} />
           <Route path="/hospital/:id" element={<HospitalDetail />} />
+          <Route path="/hospital/:id/book" element={<BookAppointment />} />
           <Route path="/emergency" element={<Emergency />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<PatientDashboard />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
@@ -38,7 +42,7 @@ function NotFoundPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-blue-700">404</p>
           <h1 className="mt-3 text-3xl font-semibold text-slate-900">Page not found</h1>
-          <p className="mt-2 text-sm text-slate-600">That page is not part of the QueueLess demo.</p>
+          <p className="mt-2 text-sm text-slate-600">That page could not be found.</p>
           <Link to="/hospitals" className="btn btn-primary mt-6">Browse hospitals</Link>
         </div>
       </main>

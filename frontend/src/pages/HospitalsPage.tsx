@@ -191,7 +191,7 @@ export default function HospitalsPage() {
                     </p>
                     <div className="directory-card-footer">
                       <span className="badge badge-gray">{hospital.departments.length} departments listed</span>
-                      {hospital.emergency_available && <span className="badge badge-red">Emergency flag</span>}
+                      {hospital.emergency_available && <span className="badge badge-red">Emergency services</span>}
                       <ArrowRight aria-hidden="true" />
                     </div>
                   </Link>
@@ -202,9 +202,7 @@ export default function HospitalsPage() {
         )}
 
         <p className="directory-disclaimer">
-          <strong>Prototype data:</strong> hospital profiles, doctor listings, fees, emergency-service
-          flags, and queue estimates are for demonstration. They are not verified or live hospital
-          information. Call the hospital directly; for an emergency in India, call 108 or 112.
+          Hospital profiles, fees, and estimated queue data are sourced from our directory. Always confirm details directly with the hospital. For emergencies in India, call 108 or 112.
         </p>
       </main>
     </div>

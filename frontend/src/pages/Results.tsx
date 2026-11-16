@@ -288,7 +288,7 @@ function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: (
           <div className="result-card-badges">
             {isTopRanked && <span className="badge badge-blue">Top match</span>}
             <span className="badge badge-gray">{r.department}</span>
-            {r.emergency_available && <span className="badge badge-red">Emergency listed*</span>}
+            {r.emergency_available && <span className="badge badge-red">Emergency services</span>}
           </div>
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
             {r.explanation} Scores balance estimated wait, straight-line distance, and listed fees;

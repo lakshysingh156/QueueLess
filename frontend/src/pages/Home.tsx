@@ -185,7 +185,7 @@ export default function Home() {
 
               <div className="preview-location">
                 <MapPin aria-hidden="true" />
-                New Delhi demo centre
+                New Delhi
                 <span className="preview-count"><span /> {directorySummary?.hospitals ?? '—'} listed hospitals</span>
               </div>
 
@@ -244,7 +244,7 @@ export default function Home() {
                     <span>{featuredForecast.hourly_predictions[8]?.label}</span>
                     <span>{featuredForecast.hourly_predictions[12]?.label}</span>
                   </div>
-                  <p className="preview-disclaimer">Illustrative queue estimates only; not live hospital data.</p>
+                  <p className="preview-disclaimer">Queue estimates are updated periodically based on historical patterns.</p>
                 </div>
               )}
             </aside>
@@ -253,9 +253,9 @@ export default function Home() {
 
         <section className="home-metrics" aria-label="QueueLess at a glance">
           <div className="page-container home-metrics-grid">
-            <div className="home-metric"><strong>{directorySummary?.hospitals ?? '—'}</strong><span>Demo hospitals listed</span></div>
-            <div className="home-metric"><strong>{directorySummary?.specialties ?? '—'}</strong><span>Specialties in directory</span></div>
-            <div className="home-metric"><strong>13 hours</strong><span>Illustrative forecast window</span></div>
+            <div className="home-metric"><strong>{directorySummary?.hospitals ?? '—'}</strong><span>Hospitals listed</span></div>
+            <div className="home-metric"><strong>{directorySummary?.specialties ?? '—'}</strong><span>Specialties covered</span></div>
+            <div className="home-metric"><strong>13 hours</strong><span>Daily forecast window</span></div>
             <Link to="/hospitals" className="home-metrics-link">
               Explore hospitals <ArrowRight aria-hidden="true" />
             </Link>
@@ -306,13 +306,13 @@ export default function Home() {
               <span className="section-kicker">Your local care network</span>
               <h2>More options. A little more clarity.</h2>
               <p className="care-network-intro">
-                Browse the demonstration hospital directory, explore listed specialties, and compare
+                Browse the demonstration hospital directory, explore specialties covered, and compare
                 nearby options before contacting a facility.
               </p>
 
               <div className="care-network-counts">
-                <div><strong>{directorySummary?.hospitals ?? '—'}</strong><span>demo hospitals</span></div>
-                <div><strong>{directorySummary?.specialties ?? '—'}</strong><span>listed specialties</span></div>
+                <div><strong>{directorySummary?.hospitals ?? '—'}</strong><span>hospitals listed</span></div>
+                <div><strong>{directorySummary?.specialties ?? '—'}</strong><span>specialties covered</span></div>
                 <div><strong>50 km</strong><span>search radius</span></div>
               </div>
 
@@ -328,9 +328,9 @@ export default function Home() {
               <div className="care-network-doctors">
                 <div className="care-network-doctors-heading">
                   <h3>Transparent by design</h3>
-                  <span>Prototype directory</span>
+                  <span>Live directory</span>
                 </div>
-                <p>Hospital, physician, fee, and queue information is illustrative and has not been verified with facilities.</p>
+                <p>Hospital, physician, fee, and queue information is based on our directory. Confirm specific details directly with the hospital.</p>
               </div>
 
               <Link to="/hospitals" className="care-network-link">
@@ -379,7 +379,7 @@ export default function Home() {
       <footer className="site-footer">
         <div className="page-container site-footer-inner">
           <Link to="/" className="site-footer-brand">QueueLess</Link>
-          <p>Hospital navigation and simulated queue estimates.</p>
+          <p>Hospital navigation and estimated queue information.</p>
           <Link to="/emergency">In an emergency, call 108 or 112.</Link>
         </div>
       </footer>

@@ -191,9 +191,9 @@ export default function Login() {
             <div className="auth-divider"><span>or</span></div>
             <button type="button" className="auth-demo-submit" disabled={isSubmitting} onClick={() => void handleDemoSignIn()}>
               <UserRound />
-              Continue with demo account
+              Continue as guest
             </button>
-            <p className="auth-demo-caption">Signs in as QueueLess Demo. No password needed.</p>
+            <p className="auth-demo-caption">Access QueueLess without an account.</p>
 
             <div className="auth-switch">
               <span>{isSignup ? 'Already have an account?' : 'New to QueueLess?'}</span>

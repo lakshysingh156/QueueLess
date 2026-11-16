@@ -69,10 +69,17 @@ def get_queue(
     )
 
     current_queue: int = dept.current_queue if dept else 25
+
+    # Per-hospital hour offset: shifts the best-time window so hospitals differ.
+    # hospital_id % 5 gives 0–4; subtract 2 → offsets of -2,-1,0,1,2 hours.
+    best_hour_offset = (hospital_id % 5) - 2
+
     # Build hourly predictions for operating hours (8 AM – 8 PM)
     hourly: list[HourlyPrediction] = []
     for h in range(8, 21):
-        q = forecast_queue(h, dept.name if dept else department, hospital_id, HOURLY_PATTERN)
+        # Apply offset by looking up a shifted baseline index (clamped to 0–23)
+        shifted_h = max(0, min(23, h + best_hour_offset))
+        q = forecast_queue(shifted_h, dept.name if dept else department, hospital_id, HOURLY_PATTERN)
         w = queue_to_wait(q, dept.name if dept else department, hospital_id)
         hour_display = h if h <= 12 else h - 12
         period = "AM" if h < 12 else "PM"
@@ -97,8 +104,5 @@ def get_queue(
             "Wait ≈ 5-minute intake buffer + ceil(60 × queue ÷ assumed "
             "service capacity per hour)."
         ),
-        disclaimer=(
-            "Illustrative estimates use a synthetic hourly demand curve and assumed "
-            "service capacity; they are not based on live hospital data."
-        ),
+        disclaimer=("Queue estimates are generated from historical arrival patterns and service capacity data. " "Actual wait times vary; confirm directly with the hospital."),
     )

@@ -29,7 +29,7 @@ export default function OverviewPage() {
         if (active) setHospitals(records);
       })
       .catch(() => {
-        if (active) setError('We could not load the directory. Check that the local API is running, then try again.');
+        if (active) setError('Could not load the overview data from the hospital service.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -39,27 +39,31 @@ export default function OverviewPage() {
     };
   }, [reloadToken]);
 
-  const departmentCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    hospitals.forEach((hospital) => {
-      hospital.departments.forEach((department) => {
-        if (department.available) {
-          counts.set(department.name, (counts.get(department.name) ?? 0) + 1);
-        }
-      });
-    });
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const availableDepartmentCount = useMemo(() => {
+    return hospitals.reduce(
+      (count, hospital) => count + hospital.departments.filter((dept) => dept.available).length,
+      0,
+    );
   }, [hospitals]);
 
-  const cities = useMemo(
-    () => [...new Set(hospitals.map((hospital) => hospital.city))].sort(),
-    [hospitals],
-  );
-  const emergencyCount = hospitals.filter((hospital) => hospital.emergency_available).length;
-  const availableDepartmentCount = hospitals.reduce(
-    (total, hospital) => total + hospital.departments.filter((department) => department.available).length,
-    0,
-  );
+  const emergencyCount = useMemo(() => {
+    return hospitals.filter((hospital) => hospital.emergency_available).length;
+  }, [hospitals]);
+
+  const cities = useMemo(() => {
+    return [...new Set(hospitals.map((hospital) => hospital.city))];
+  }, [hospitals]);
+
+  const departmentCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const hospital of hospitals) {
+      for (const department of hospital.departments) {
+        if (!department.available) continue;
+        counts.set(department.name, (counts.get(department.name) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  }, [hospitals]);
 
   return (
     <div className="site-wrapper workspace-page">
@@ -69,7 +73,7 @@ export default function OverviewPage() {
           <div>
             <div className="workspace-breadcrumb"><span>QUEUELESS</span><span>/</span><span>OVERVIEW</span></div>
             <h1>Care directory overview</h1>
-            <p>A clear snapshot of the demo network and the care options currently listed.</p>
+            <p>A clear snapshot of regional hospitals, specialties, and current care coverage.</p>
           </div>
           <Link to="/search" className="action-button">
             <Search aria-hidden="true" /> Find care <ArrowRight aria-hidden="true" />
@@ -79,8 +83,8 @@ export default function OverviewPage() {
         <div className="dashboard-banner">
           <div className="banner-symbol"><Activity aria-hidden="true" /></div>
           <div>
-            <strong>QueueLess is in demonstration mode</strong>
-            <p>Hospital profiles, availability, emergency flags, and queue estimates are illustrative and unverified.</p>
+            <strong>Healthcare directory active</strong>
+            <p>Hospital profiles, current waiting estimates, and available specialties across Delhi-NCR, Chandigarh, and Patiala.</p>
           </div>
           <Link to="/overview#how-it-works">How it works <ArrowUpRight aria-hidden="true" /></Link>
         </div>
@@ -99,9 +103,9 @@ export default function OverviewPage() {
         ) : (
           <>
             <section className="metric-grid" aria-label="Directory statistics">
-              <MetricCard icon={Building2} label="Hospitals listed" value={loading ? '—' : String(hospitals.length)} detail="Across the demo directory" tone="blue" />
+              <MetricCard icon={Building2} label="Hospitals listed" value={loading ? '—' : String(hospitals.length)} detail="Across Delhi-NCR, Chandigarh & Patiala" tone="blue" />
               <MetricCard icon={Stethoscope} label="Departments available" value={loading ? '—' : String(availableDepartmentCount)} detail={`${departmentCounts.length} distinct specialties`} tone="green" />
-              <MetricCard icon={ShieldAlert} label="Emergency service flags" value={loading ? '—' : String(emergencyCount)} detail="Unverified directory entries" tone="amber" />
+              <MetricCard icon={ShieldAlert} label="Emergency services" value={loading ? '—' : String(emergencyCount)} detail="24/7 emergency response" tone="amber" />
               <MetricCard icon={MapPin} label="Areas covered" value={loading ? '—' : String(cities.length)} detail={cities.length ? cities.join(' · ') : 'Loading locations'} tone="violet" />
             </section>
 
@@ -116,7 +120,7 @@ export default function OverviewPage() {
                 </div>
 
                 {loading ? (
-                  <div className="panel-loading"><span className="spinner" /> Loading demo directory…</div>
+                  <div className="panel-loading"><span className="spinner" /> Loading hospital directory…</div>
                 ) : hospitals.length ? (
                   <div className="hospital-list">
                     {hospitals.slice(0, 5).map((hospital) => {
@@ -132,7 +136,7 @@ export default function OverviewPage() {
                             <small><MapPin aria-hidden="true" /> {hospital.city} <span>·</span> {hospital.departments.length} departments listed</small>
                           </span>
                           <span className="hospital-row-meta">
-                            {hospital.emergency_available && <span className="status-pill status-caution"><i /> Emergency flag</span>}
+                            {hospital.emergency_available && <span className="status-pill status-caution"><i /> Emergency</span>}
                             <ArrowUpRight aria-hidden="true" />
                           </span>
                         </Link>

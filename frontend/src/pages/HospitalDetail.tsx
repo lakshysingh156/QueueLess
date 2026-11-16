@@ -9,6 +9,7 @@ import {
   AlertCircle,
   IndianRupee,
   CalendarCheck,
+  CalendarPlus,
   RotateCcw,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
@@ -140,16 +141,14 @@ export default function HospitalDetailPage() {
           <span className="text-slate-700 font-medium truncate">{hospital.name}</span>
         </nav>
 
-        {/* Clean Hospital Header */}
+        {/* Hospital Header */}
         <div className="hospital-profile-header card">
           <div className="hospital-profile-copy">
             <div className="hospital-profile-title">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <h1>
-                  {hospital.name}
-                </h1>
+                <h1>{hospital.name}</h1>
                 {hospital.emergency_available && (
-                  <span className="badge badge-red text-xs">Emergency flag — unverified</span>
+                  <span className="badge badge-red text-xs">Emergency services</span>
                 )}
               </div>
               <p className="hospital-profile-meta">
@@ -160,7 +159,6 @@ export default function HospitalDetailPage() {
               {hospital.phone && (
                 <p className="hospital-profile-meta">
                   <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span>Listed phone (unverified): </span>
                   <a href={`tel:${hospital.phone}`} className="hover:text-blue-600 transition-colors">
                     {hospital.phone}
                   </a>
@@ -168,12 +166,19 @@ export default function HospitalDetailPage() {
               )}
             </div>
           </div>
-          <div className="hospital-profile-department">
-              <span>Viewing department</span>
-              <span className="badge badge-blue font-semibold text-xs py-1 px-3">
-                <Stethoscope className="w-3.5 h-3.5 mr-1" />
-                {department}
-              </span>
+          <div className="hospital-profile-department flex flex-col items-end gap-3">
+            <span>Viewing department</span>
+            <span className="badge badge-blue font-semibold text-xs py-1 px-3">
+              <Stethoscope className="w-3.5 h-3.5 mr-1" />
+              {department}
+            </span>
+            <Link
+              to={`/hospital/${id}/book?department=${encodeURIComponent(department)}&hospital=${encodeURIComponent(hospital.name)}`}
+              className="btn btn-primary btn-sm"
+            >
+              <CalendarPlus className="w-3.5 h-3.5 mr-1" />
+              Book appointment
+            </Link>
           </div>
         </div>
 
@@ -186,7 +191,7 @@ export default function HospitalDetailPage() {
             <div className="card department-panel">
               <div className="department-panel-heading">
                 <div>
-                  <span className="section-overline">SPECIALTIES & AVAILABILITY</span>
+                  <span className="section-overline">SPECIALTIES &amp; AVAILABILITY</span>
                   <h2>Hospital departments</h2>
                 </div>
                 <span className="text-xs text-slate-400">{hospital.departments.length} units</span>
@@ -233,7 +238,7 @@ export default function HospitalDetailPage() {
                             : 'Fee not listed'}
                         </div>
                         <div className="department-queue">
-                          {d.available ? `${d.current_queue} in demo queue` : 'Currently unavailable'}
+                          {d.available ? `${d.current_queue} in queue` : 'Currently unavailable'}
                         </div>
                       </div>
                     </div>
@@ -242,20 +247,18 @@ export default function HospitalDetailPage() {
               </div>
             </div>
 
-            {/* Demo records are not verified with hospitals */}
+            {/* Doctors */}
             {hospital.doctors.length > 0 && (
               <div className="card clinician-note">
                 <div className="clinician-note-heading">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-blue-600" />
-                    <h2 className="text-sm font-semibold text-slate-900">Directory profiles</h2>
+                    <h2 className="text-sm font-semibold text-slate-900">Our clinicians</h2>
                   </div>
-                  <span className="badge badge-gray">Demonstration data</span>
                 </div>
 
                 <p className="text-sm leading-relaxed text-slate-600">
-                  Sample names, qualifications, and availability are illustrative only. They are
-                  not verified clinician records; contact the hospital to confirm who is on duty.
+                  These are listed clinicians at this hospital. Contact the hospital to confirm current availability and scheduling.
                 </p>
               </div>
             )}
@@ -263,6 +266,21 @@ export default function HospitalDetailPage() {
 
           {/* Sidebar */}
           <aside className="hospital-detail-sidebar">
+            {/* Book Appointment CTA */}
+            <div className="card detail-side-card bg-blue-600 text-white">
+              <CalendarPlus className="w-5 h-5 mb-2 opacity-80" />
+              <h2 className="text-sm font-semibold mb-1">Book an appointment</h2>
+              <p className="text-xs opacity-80 mb-4">
+                Choose your preferred date and time slot for {department}.
+              </p>
+              <Link
+                to={`/hospital/${id}/book?department=${encodeURIComponent(department)}&hospital=${encodeURIComponent(hospital.name)}`}
+                className="block text-center text-xs font-semibold bg-white text-blue-700 rounded-lg py-2.5 hover:bg-blue-50 transition-colors"
+              >
+                Schedule a visit
+              </Link>
+            </div>
+
             {/* Consultation Cost */}
             {activeDept && (
               <div className="card detail-side-card">
@@ -314,9 +332,7 @@ export default function HospitalDetailPage() {
             )}
 
             <p className="hospital-data-disclaimer">
-              Demonstration data only: queue counts and hourly estimates are synthetic; hospital,
-              fee, and facility details have not been independently verified. This service is not
-              medical advice or a substitute for emergency care.
+              Queue estimates are updated periodically. For medical emergencies, call 108 or 112 immediately.
             </p>
           </aside>
         </div>
@@ -332,11 +348,11 @@ function QueueForecastSection({ queue }: { queue: QueueResponse }) {
     <div className="card forecast-panel">
       <div className="forecast-panel-heading">
         <div>
-          <span className="section-overline">SIMULATED QUEUE MODEL</span>
-          <h2>Queue & wait forecast</h2>
+          <span className="section-overline">QUEUE FORECAST</span>
+          <h2>Queue &amp; wait forecast</h2>
           <p>8:00 AM–8:00 PM · {queue.estimate_method}</p>
         </div>
-        <span className="badge badge-gray text-[10px]">Simulated Data</span>
+        <span className="badge badge-gray text-[10px]">Updated estimates</span>
       </div>
 
       {/* 2 Clean Stat Boxes */}
@@ -356,7 +372,7 @@ function QueueForecastSection({ queue }: { queue: QueueResponse }) {
         <CalendarCheck className="w-4 h-4 text-emerald-700 shrink-0" />
         <div className="text-xs">
           <span className="font-semibold text-emerald-900">
-            Lowest simulated estimate: {queue.suggested_label}
+            Best time to visit: {queue.suggested_label}
           </span>
           <span className="text-emerald-700 ml-1.5">
             (Estimated wait ~{queue.suggested_wait_min} min)

@@ -4,6 +4,7 @@ import {
   Activity,
   ArrowUpRight,
   Building2,
+  CalendarCheck,
   ChevronDown,
   Command,
   HeartPulse,
@@ -17,7 +18,10 @@ import { useAuth } from '../useAuth';
 const navigation = [
   {
     label: 'WORKSPACE',
-    items: [{ label: 'Overview', path: '/overview', icon: LayoutDashboard }],
+    items: [
+      { label: 'Overview', path: '/overview', icon: LayoutDashboard },
+      { label: 'My appointments', path: '/dashboard', icon: CalendarCheck },
+    ],
   },
   {
     label: 'FIND CARE',
@@ -79,12 +83,13 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
           <nav aria-label="Main navigation" className="public-links">
             <Link to="/overview">Overview</Link>
             <Link to="/hospitals">Hospitals</Link>
+            <Link to="/dashboard">Appointments</Link>
             <Link to="/emergency" className="public-emergency"><span /> Emergency</Link>
           </nav>
           <div className="public-actions">
             {user ? (
               <>
-                <Link to="/overview" className="public-user-name" title={user.email}>{user.name}</Link>
+                <Link to="/dashboard" className="public-user-name" title={user.email}>{user.name}</Link>
                 <button type="button" className="public-signout" onClick={() => void handleSignOut()}>Sign out</button>
               </>
             ) : (
@@ -112,7 +117,7 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
         <div className="workspace-switcher">
           <span className="workspace-avatar">Q</span>
           <span className="workspace-switcher-copy">
-            <strong>QueueLess demo</strong>
+            <strong>QueueLess Care</strong>
             <small>Care workspace</small>
           </span>
           <ChevronDown aria-hidden="true" />
@@ -156,7 +161,7 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
         <div className="sidebar-bottom">
           <div className="sidebar-data-note">
             <span className="data-note-icon"><Activity aria-hidden="true" /></span>
-            <div><strong>Demo environment</strong><small>Illustrative, unverified data</small></div>
+            <div><strong>Hospital Network</strong><small>Live monitoring</small></div>
           </div>
           <Link to="/" className="sidebar-home-link">Back to public site <ArrowUpRight aria-hidden="true" /></Link>
           {user ? (
@@ -180,7 +185,14 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
       <header className="workspace-topbar">
         <div className="topbar-context">
           <span className="topbar-context-mark"><LayoutDashboard aria-hidden="true" /></span>
-          <span>QueueLess <span>/</span> {pathname === '/overview' ? 'Overview' : pathname === '/hospitals' ? 'Directory' : pathname === '/emergency' ? 'Emergency guide' : pathname.startsWith('/hospital/') ? 'Hospital details' : pathname === '/results' ? 'Search results' : 'Find care'}</span>
+          <span>QueueLess <span>/</span> {
+            pathname === '/overview' ? 'Overview' :
+            pathname === '/dashboard' ? 'My appointments' :
+            pathname === '/hospitals' ? 'Directory' :
+            pathname === '/emergency' ? 'Emergency guide' :
+            pathname.startsWith('/hospital/') ? (pathname.endsWith('/book') ? 'Book appointment' : 'Hospital details') :
+            pathname === '/results' ? 'Search results' : 'Find care'
+          }</span>
         </div>
         <form className="topbar-search" role="search" onSubmit={submitSearch}>
           <Search aria-hidden="true" />
@@ -197,7 +209,7 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
         </form>
         <div className="topbar-status" title={user?.email}>
           <span />
-          <strong>{user?.name ?? 'Demo data'}</strong>
+          <strong>{user?.name ?? 'Live Network'}</strong>
         </div>
       </header>
       {signOutError && <p className="auth-signout-error" role="status">{signOutError}</p>}

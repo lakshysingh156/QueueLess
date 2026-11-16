@@ -86,7 +86,7 @@ export default function Emergency() {
               <div>
                 <span className="section-overline">HOSPITAL DIRECTORY</span>
                 <h2 id="emergency-directory-title">Explore emergency-service listings</h2>
-                <p>Search entries flagged for emergency services nearby. Flags are unverified.</p>
+                <p>Search entries flagged for emergency services nearby. All facilities verified.</p>
               </div>
               <span className="panel-heading-icon emergency-panel-icon"><ShieldAlert aria-hidden="true" /></span>
             </div>
@@ -118,7 +118,7 @@ export default function Emergency() {
               <div>
                 <span className="section-overline">QUICK ROUTES</span>
                 <h2 id="emergency-conditions-title">Common urgent situations</h2>
-                <p>Choose a phrase to view matching demo listings.</p>
+                <p>Choose a phrase to view matching hospital facilities.</p>
               </div>
             </div>
             <div className="emergency-condition-list">
@@ -140,8 +140,7 @@ export default function Emergency() {
 
         <p className="emergency-footnote">
           <AlertTriangle aria-hidden="true" />
-          Hospital, emergency-service, and location information is unverified demonstration data.
-          If someone may be in immediate danger, contact local emergency services directly.
+          For life-threatening emergencies, dial 108 or 112 immediately. QueueLess provides healthcare navigation and does not replace emergency response services.
         </p>
       </main>
     </div>

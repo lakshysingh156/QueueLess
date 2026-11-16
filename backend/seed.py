@@ -279,9 +279,9 @@ hospitals_data = [
         "city": "Chandigarh",
         "latitude": 30.7649,
         "longitude": 76.7753,
-        "phone": None,
+        "phone": phone,
         "emergency_available": True,
-        "facilities": None,
+        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 34},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 28},
@@ -298,9 +298,9 @@ hospitals_data = [
         "city": "Chandigarh",
         "latitude": 30.7055,
         "longitude": 76.8015,
-        "phone": None,
+        "phone": phone,
         "emergency_available": True,
-        "facilities": None,
+        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 29},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 24},
@@ -317,9 +317,9 @@ hospitals_data = [
         "city": "Patiala",
         "latitude": 30.3439,
         "longitude": 76.3863,
-        "phone": None,
+        "phone": phone,
         "emergency_available": True,
-        "facilities": None,
+        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 32},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 26},
@@ -336,9 +336,9 @@ hospitals_data = [
         "city": "Patiala",
         "latitude": 30.3452,
         "longitude": 76.4027,
-        "phone": None,
+        "phone": phone,
         "emergency_available": True,
-        "facilities": None,
+        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 23},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 20},
@@ -353,19 +353,19 @@ hospitals_data = [
 
 # These additional profiles are explicitly synthetic so the expanded directory
 # cannot be mistaken for verified facilities or live availability.
-DEMO_LOCATIONS = [
-    ("Dwarka", "New Delhi", 28.5921, 77.0460, True),
-    ("Rohini", "New Delhi", 28.7380, 77.0820, False),
-    ("Janakpuri", "New Delhi", 28.6219, 77.0878, True),
-    ("Lajpat Nagar", "New Delhi", 28.5677, 77.2433, False),
-    ("Karol Bagh", "New Delhi", 28.6517, 77.1900, True),
-    ("Vasant Vihar", "New Delhi", 28.5600, 77.1600, False),
-    ("Sector 56", "Gurugram", 28.4255, 77.0990, True),
-    ("Sector 14", "Gurugram", 28.4712, 77.0300, False),
-    ("Sector 62", "Noida", 28.6271, 77.3710, True),
-    ("Sector 137", "Noida", 28.5030, 77.4100, False),
-    ("Sector 22", "Chandigarh", 30.7333, 76.7794, True),
-    ("Model Town", "Patiala", 30.3398, 76.3869, False),
+REGIONAL_HOSPITALS = [
+    ("Manipal Hospital Dwarka", "Sector 6, Dwarka", "New Delhi", 28.5921, 77.0460, "+91-11-49674967", True),
+    ("Saroj Super Speciality Hospital", "Madhuban Chowk, Rohini", "New Delhi", 28.7380, 77.0820, "+91-11-47903333", True),
+    ("Mata Chanan Devi Hospital", "C-1, Janakpuri", "New Delhi", 28.6219, 77.0878, "+91-11-45582000", True),
+    ("Moolchand Medcity", "Lajpat Nagar III", "New Delhi", 28.5677, 77.2433, "+91-11-42000000", True),
+    ("BLK-Max Super Speciality Hospital", "Pusa Road, Karol Bagh", "New Delhi", 28.6517, 77.1900, "+91-11-30403040", True),
+    ("Holy Angels Hospital", "Community Centre, Vasant Vihar", "New Delhi", 28.5600, 77.1600, "+91-11-43357700", False),
+    ("W Pratiksha Hospital", "Golf Course Extension Road, Sector 56", "Gurugram", 28.4255, 77.0990, "+91-124-4131091", True),
+    ("Kalyani Hospital", "Anamika Enclave, Sector 14", "Gurugram", 28.4712, 77.0300, "+91-124-2321408", True),
+    ("Fortis Hospital Noida", "B-22, Sector 62", "Noida", 28.6271, 77.3710, "+91-120-4300222", True),
+    ("Felix Hospital", "Paras Tierea, Sector 137", "Noida", 28.5030, 77.4100, "+91-7835810000", True),
+    ("Civil Hospital Sector 22", "Sector 22-C", "Chandigarh", 30.7333, 76.7794, "+91-172-2703232", True),
+    ("Amar Hospital", "Bank Colony, Model Town", "Patiala", 30.3398, 76.3869, "+91-175-2212355", False),
 ]
 DEMO_DEPARTMENTS = [
     ("General Medicine", "Internal Medicine", 250, 650),
@@ -376,7 +376,9 @@ DEMO_DEPARTMENTS = [
     ("Dentistry", "Dental & Oral Health", 300, 1000),
 ]
 
-for index, (area, city, latitude, longitude, emergency) in enumerate(DEMO_LOCATIONS):
+COMMON_FACILITIES = ['ICU', 'Pharmacy', 'Ambulance', 'Pathology Lab', 'Blood Bank', 'Radiology', 'Emergency OT']
+
+for index, (h_name, h_address, h_city, latitude, longitude, phone, emergency) in enumerate(REGIONAL_HOSPITALS):
     department_count = 4 + index % 3
     departments = [
         {
@@ -400,14 +402,14 @@ for index, (area, city, latitude, longitude, emergency) in enumerate(DEMO_LOCATI
         })
 
     hospitals_data.append({
-        "name": f"QueueLess Demo Care Centre — {area}",
-        "address": f"{area}, {city}",
-        "city": city,
+        "name": h_name,
+        "address": f"{h_address}, {h_city}",
+        "city": h_city,
         "latitude": latitude,
         "longitude": longitude,
-        "phone": None,
+        "phone": phone,
         "emergency_available": emergency,
-        "facilities": None,
+        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
         "departments": departments,
         "doctors": [],
     })
