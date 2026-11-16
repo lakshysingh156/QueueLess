@@ -11,7 +11,9 @@ import {
   CalendarCheck,
   CalendarPlus,
   RotateCcw,
+  Star,
 } from 'lucide-react';
+import { getHospitalRating } from '../hospitalRatings';
 import Navbar from '../components/Navbar';
 import { getHospital, getQueue } from '../api';
 import type { HospitalDetail, QueueResponse } from '../types';
@@ -112,6 +114,7 @@ export default function HospitalDetailPage() {
   const activeDept =
     hospital.departments.find((d) => d.name.toLowerCase() === department.toLowerCase()) ??
     hospital.departments[0];
+  const rating = getHospitalRating(hospital.id, hospital.name);
   const activeFee = activeDept
     ? getConsultationFeeRange(
         hospital.name,
@@ -150,6 +153,11 @@ export default function HospitalDetailPage() {
                 {hospital.emergency_available && (
                   <span className="badge badge-red text-xs">Emergency services</span>
                 )}
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  {rating.score.toFixed(1)} / 5.0
+                  <span className="font-normal text-slate-400">({rating.reviewsCount.toLocaleString()} verified reviews)</span>
+                </span>
               </div>
               <p className="hospital-profile-meta">
                 <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -335,6 +343,53 @@ export default function HospitalDetailPage() {
               Queue estimates are updated periodically. For medical emergencies, call 108 or 112 immediately.
             </p>
           </aside>
+        </div>
+
+        {/* Patient Reviews & Ratings */}
+        <div className="card mt-10 p-8 sm:p-10 border border-slate-200/90 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-slate-100">
+            <div>
+              <span className="section-overline">PATIENT REVIEWS &amp; RATINGS</span>
+              <h2 className="text-2xl font-bold text-slate-900 mt-1">Hospital Care &amp; Service Feedback</h2>
+              <p className="text-xs text-slate-500 mt-1">Based on {rating.reviewsCount.toLocaleString()} verified outpatient consultations</p>
+            </div>
+            <div className="flex items-center gap-4 bg-amber-50/80 border border-amber-200/60 rounded-2xl p-4 sm:px-6">
+              <div className="text-center">
+                <div className="text-3xl font-extrabold text-amber-700 flex items-center justify-center gap-1">
+                  <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
+                  <span>{rating.score.toFixed(1)}</span>
+                </div>
+                <span className="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Out of 5.0</span>
+              </div>
+              <div className="h-10 w-px bg-amber-200/80" />
+              <div className="text-xs text-amber-900">
+                <p className="font-bold">{rating.satisfactionRate}% Patient Satisfaction</p>
+                <p className="text-[11px] text-amber-700 font-medium">{rating.highlight}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
+            {rating.reviews.map((rev, i) => (
+              <div key={i} className="rounded-xl bg-slate-50/80 p-5 border border-slate-100 flex flex-col justify-between space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      {[...Array(rev.rating)].map((_, idx) => (
+                        <Star key={idx} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-slate-400">{rev.date}</span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed italic">&ldquo;{rev.comment}&rdquo;</p>
+                </div>
+                <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                  <span className="font-semibold text-slate-800">{rev.author}</span>
+                  <span>{rev.location}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>

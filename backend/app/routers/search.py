@@ -225,9 +225,11 @@ def search(
         if dept is None or not dept.available:
             continue
 
-        distance = haversine(lat, lon, hospital.latitude, hospital.longitude)
-        if distance > MAX_SEARCH_DISTANCE_KM:
+        raw_distance = haversine(lat, lon, hospital.latitude, hospital.longitude)
+        if raw_distance > MAX_SEARCH_DISTANCE_KM:
             continue
+        # Ensure a realistic transit/walking baseline distance (never displays 0.0 km)
+        distance = max(0.6, round(raw_distance, 1))
         wait_min = queue_to_wait(dept.current_queue, dept.name, hospital.id)
         score = compute_score(dept, distance, hospital.id)
 

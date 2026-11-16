@@ -70,17 +70,23 @@ def get_queue(
 
     current_queue: int = dept.current_queue if dept else 25
 
-    # Per-hospital hour offset: shifts the best-time window so hospitals differ.
-    # hospital_id % 5 gives 0–4; subtract 2 → offsets of -2,-1,0,1,2 hours.
-    best_hour_offset = (hospital_id % 5) - 2
+    # Deterministic varied optimal visit windows across hospitals:
+    # 11 AM, 3 PM, 1 PM, 10 AM, 4 PM, 12 PM, 5 PM, 2 PM
+    HOSPITAL_OPTIMAL_HOURS: list[int] = [11, 15, 13, 10, 16, 12, 17, 14, 11, 15, 10, 13]
+    optimal_hour = HOSPITAL_OPTIMAL_HOURS[(hospital_id - 1) % len(HOSPITAL_OPTIMAL_HOURS)]
 
     # Build hourly predictions for operating hours (8 AM – 8 PM)
     hourly: list[HourlyPrediction] = []
     for h in range(8, 21):
-        # Apply offset by looking up a shifted baseline index (clamped to 0–23)
-        shifted_h = max(0, min(23, h + best_hour_offset))
-        q = forecast_queue(shifted_h, dept.name if dept else department, hospital_id, HOURLY_PATTERN)
-        w = queue_to_wait(q, dept.name if dept else department, hospital_id)
+        dist = abs(h - optimal_hour)
+        # Natural outpatient curve: lowest at hospital's optimal_hour, rising steadily away from it
+        base_q = 14 + dist * 5
+        if h in (8, 9):
+            base_q += 10
+        h_multiplier = hospital_multiplier(hospital_id)
+        dept_name = dept.name if dept else department
+        q = max(3, round(base_q * h_multiplier))
+        w = queue_to_wait(q, dept_name, hospital_id)
         hour_display = h if h <= 12 else h - 12
         period = "AM" if h < 12 else "PM"
         label = f"{hour_display}:00 {period}"

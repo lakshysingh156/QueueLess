@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ArrowRight, MapPin, Search, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, ArrowRight, MapPin, Search, ShieldCheck, SlidersHorizontal, Star } from 'lucide-react';
+import { getHospitalRating } from '../hospitalRatings';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { listHospitals } from '../api';
@@ -191,6 +192,10 @@ export default function HospitalsPage() {
                     </p>
                     <div className="directory-card-footer">
                       <span className="badge badge-gray">{hospital.departments.length} departments listed</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50/80 px-2 py-0.5 rounded-full border border-amber-200/50">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        {getHospitalRating(hospital.id, hospital.name).score.toFixed(1)}
+                      </span>
                       {hospital.emergency_available && <span className="badge badge-red">Emergency services</span>}
                       <ArrowRight aria-hidden="true" />
                     </div>

@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Search,
   RotateCcw,
+  Star,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import LocationPicker from '../components/LocationPicker';
@@ -16,6 +17,7 @@ import { searchHospitals } from '../api';
 import type { SearchResponse, SearchResult } from '../types';
 import { getSearchLocation, withSearchLocation } from '../searchLocation';
 import { getConsultationFeeRange } from '../demoFees';
+import { getHospitalRating } from '../hospitalRatings';
 
 type SortKey = 'rank' | 'distance_km' | 'estimated_wait_min' | 'consultation_fee_min';
 
@@ -255,6 +257,7 @@ export default function Results() {
 function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: () => void }) {
   const isTopRanked = r.rank === 1;
   const fee = getResultFee(r);
+  const rating = getHospitalRating(r.hospital_id, r.hospital_name);
 
   return (
     <div
@@ -289,6 +292,11 @@ function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: (
             {isTopRanked && <span className="badge badge-blue">Top match</span>}
             <span className="badge badge-gray">{r.department}</span>
             {r.emergency_available && <span className="badge badge-red">Emergency services</span>}
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50/80 px-2 py-0.5 rounded-full border border-amber-200/50">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              {rating.score.toFixed(1)}
+              <span className="font-normal text-slate-400">({rating.reviewsCount.toLocaleString()})</span>
+            </span>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
             {r.explanation} Scores balance estimated wait, straight-line distance, and listed fees;
@@ -305,7 +313,7 @@ function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: (
           <div className="result-metric">
             <MapPin aria-hidden="true" />
             <span>Distance</span>
-            <strong>{r.distance_km.toFixed(1)} <small>km</small></strong>
+            <strong>{r.distance_km < 0.5 ? '< 0.5' : r.distance_km.toFixed(1)} <small>km</small></strong>
           </div>
           <div className="result-metric">
             <IndianRupee aria-hidden="true" />
