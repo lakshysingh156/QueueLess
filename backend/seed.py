@@ -14,6 +14,8 @@ models.Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
+COMMON_FACILITIES = ['ICU', 'Pharmacy', 'Ambulance', 'Pathology Lab', 'Blood Bank', 'Radiology', 'Emergency OT']
+
 hospitals_data = [
     {
         "name": "All India Institute of Medical Sciences (AIIMS)",
@@ -279,9 +281,9 @@ hospitals_data = [
         "city": "Chandigarh",
         "latitude": 30.7649,
         "longitude": 76.7753,
-        "phone": phone,
+        "phone": None,
         "emergency_available": True,
-        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
+        "facilities": COMMON_FACILITIES[:4],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 34},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 28},
@@ -298,9 +300,9 @@ hospitals_data = [
         "city": "Chandigarh",
         "latitude": 30.7055,
         "longitude": 76.8015,
-        "phone": phone,
+        "phone": None,
         "emergency_available": True,
-        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
+        "facilities": COMMON_FACILITIES[:4],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 29},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 24},
@@ -317,9 +319,9 @@ hospitals_data = [
         "city": "Patiala",
         "latitude": 30.3439,
         "longitude": 76.3863,
-        "phone": phone,
+        "phone": None,
         "emergency_available": True,
-        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
+        "facilities": COMMON_FACILITIES[:4],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 32},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 26},
@@ -336,9 +338,9 @@ hospitals_data = [
         "city": "Patiala",
         "latitude": 30.3452,
         "longitude": 76.4027,
-        "phone": phone,
+        "phone": None,
         "emergency_available": True,
-        "facilities": COMMON_FACILITIES[:4 + (index % 4)],
+        "facilities": COMMON_FACILITIES[:4],
         "departments": [
             {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 23},
             {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 20},
@@ -375,8 +377,6 @@ DEMO_DEPARTMENTS = [
     ("Ophthalmology", "Eye Care", 250, 750),
     ("Dentistry", "Dental & Oral Health", 300, 1000),
 ]
-
-COMMON_FACILITIES = ['ICU', 'Pharmacy', 'Ambulance', 'Pathology Lab', 'Blood Bank', 'Radiology', 'Emergency OT']
 
 for index, (h_name, h_address, h_city, latitude, longitude, phone, emergency) in enumerate(REGIONAL_HOSPITALS):
     department_count = 4 + index % 3
