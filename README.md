@@ -60,6 +60,10 @@ npm run dev
 
 The launcher is preferred because it also checks requirements and prepares the demo data.
 
+## Sign in and demo account
+
+Create an account with your name, email, and a password of at least eight characters, or choose **Continue with demo account** to enter as **QueueLess Demo** without a password. Signed-in names appear in the workspace and public navigation. Passwords are stored as salted scrypt hashes; browser sessions are kept in session storage and expire after seven days. The demo account is shared and is intended only for exploring this prototype.
+
 ## Main user journey
 
 1. Search for a supported symptom or browse the hospital directory.
@@ -112,6 +116,6 @@ Keep local configuration (`backend/.env`), the generated database (`backend/queu
 
 ## Scope and next production steps
 
-The MVP includes the landing page, symptom search, hospital directory with filters, ranked results, hospital profiles, department selection, hourly wait visualization, location consent, and emergency calling guidance. Account creation is only a labelled visual prototype; there is no authentication or patient-data storage.
+The MVP includes the landing page, symptom search, hospital directory with filters, ranked results, hospital profiles, department selection, hourly wait visualization, location consent, emergency calling guidance, and basic account sign-in. It is not production identity management and must not be used to store health information.
 
 This repository is suitable for an academic demonstration, **not deployment for patient care**. Production use would require, at minimum, verified provider data and update agreements, real queue/availability integrations, clinically reviewed safety flows, location/privacy controls, authentication and authorization, audit/security review, database migrations, monitoring, accessibility testing, and end-to-end testing. Do not enter personal health information.

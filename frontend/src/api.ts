@@ -2,6 +2,62 @@ import type { SearchResponse, Hospital, HospitalDetail, QueueResponse } from './
 
 const BASE = '/api';
 
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface AuthSession {
+  access_token: string;
+  token_type: 'bearer';
+  user: AuthUser;
+}
+
+async function authRequest(path: string, init?: RequestInit): Promise<Response> {
+  const response = await fetch(`${BASE}/auth${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...init?.headers,
+    },
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { detail?: unknown } | null;
+    const message = typeof body?.detail === 'string' ? body.detail : 'Authentication request failed';
+    throw new Error(message);
+  }
+  return response;
+}
+
+export async function registerAccount(name: string, email: string, password: string): Promise<AuthSession> {
+  const response = await authRequest('/signup', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, password }),
+  });
+  return response.json() as Promise<AuthSession>;
+}
+
+export async function loginAccount(email: string, password: string): Promise<AuthSession> {
+  const response = await authRequest('/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+  return response.json() as Promise<AuthSession>;
+}
+
+export async function loginDemoAccount(): Promise<AuthSession> {
+  const response = await authRequest('/demo', { method: 'POST' });
+  return response.json() as Promise<AuthSession>;
+}
+
+export async function logoutAccount(token: string): Promise<void> {
+  await authRequest('/logout', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export async function searchHospitals(
   symptom: string,
   lat: number,

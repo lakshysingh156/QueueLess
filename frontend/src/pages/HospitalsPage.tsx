@@ -81,7 +81,7 @@ export default function HospitalsPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Hospital, city, or address"
-                className="input py-2.5 pl-10"
+                className="input input-search py-2.5"
               />
             </span>
           </label>

@@ -283,11 +283,11 @@ hospitals_data = [
         "emergency_available": True,
         "facilities": None,
         "departments": [
-            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 34},
-            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 28},
-            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 31},
-            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 20},
-            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 18},
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 34},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 28},
+            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": 150, "fee_max": 500, "queue": 31},
+            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": 50, "fee_max": 200, "queue": 20},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": 50, "fee_max": 200, "queue": 18},
             {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 12},
         ],
         "doctors": [],
@@ -302,12 +302,12 @@ hospitals_data = [
         "emergency_available": True,
         "facilities": None,
         "departments": [
-            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 29},
-            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 24},
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 29},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 24},
             {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 22},
-            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 16},
-            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 15},
-            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 10},
+            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": 50, "fee_max": 200, "queue": 16},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": 50, "fee_max": 200, "queue": 15},
+            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": 150, "fee_max": 600, "queue": 10},
         ],
         "doctors": [],
     },
@@ -321,12 +321,12 @@ hospitals_data = [
         "emergency_available": True,
         "facilities": None,
         "departments": [
-            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 32},
-            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 26},
-            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 24},
-            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 19},
-            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 17},
-            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 11},
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 32},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 26},
+            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": 150, "fee_max": 400, "queue": 24},
+            {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": 50, "fee_max": 200, "queue": 19},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": 50, "fee_max": 200, "queue": 17},
+            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": 100, "fee_max": 500, "queue": 11},
         ],
         "doctors": [],
     },
@@ -340,12 +340,12 @@ hospitals_data = [
         "emergency_available": True,
         "facilities": None,
         "departments": [
-            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": None, "fee_max": None, "queue": 23},
-            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": None, "fee_max": None, "queue": 20},
-            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": None, "fee_max": None, "queue": 18},
+            {"name": "General Medicine", "specialty": "Internal Medicine", "fee_min": 50, "fee_max": 200, "queue": 23},
+            {"name": "Orthopedics", "specialty": "Bone & Joint", "fee_min": 100, "fee_max": 300, "queue": 20},
+            {"name": "Cardiology", "specialty": "Heart & Vascular", "fee_min": 150, "fee_max": 400, "queue": 18},
             {"name": "Dermatology", "specialty": "Skin & Hair", "fee_min": None, "fee_max": None, "queue": 14},
-            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": None, "fee_max": None, "queue": 13},
-            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": None, "fee_max": None, "queue": 8},
+            {"name": "Ophthalmology", "specialty": "Eye Care", "fee_min": 50, "fee_max": 200, "queue": 13},
+            {"name": "Emergency", "specialty": "Emergency Medicine", "fee_min": 100, "fee_max": 500, "queue": 8},
         ],
         "doctors": [],
     },
@@ -436,9 +436,23 @@ schemes_data = [
 # Insert hospitals
 dept_name_map = {}
 added_hospitals = 0
+updated_department_fees = 0
 for h_data in hospitals_data:
     existing = db.query(models.Hospital).filter_by(name=h_data["name"]).first()
     if existing:
+        existing_departments = {department.name: department for department in existing.departments}
+        for department_data in h_data["departments"]:
+            department = existing_departments.get(department_data["name"])
+            if (
+                department
+                and department.consultation_fee_min is None
+                and department.consultation_fee_max is None
+                and department_data["fee_min"] is not None
+                and department_data["fee_max"] is not None
+            ):
+                department.consultation_fee_min = department_data["fee_min"]
+                department.consultation_fee_max = department_data["fee_max"]
+                updated_department_fees += 1
         continue
 
     hospital = models.Hospital(
@@ -501,4 +515,7 @@ for s_data in schemes_data:
 
 db.commit()
 db.close()
-print(f"Added {added_hospitals} hospitals and {added_schemes} schemes without deleting existing data.")
+print(
+    f"Added {added_hospitals} hospitals and {added_schemes} schemes; "
+    f"filled {updated_department_fees} missing demo department fees."
+)

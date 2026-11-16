@@ -8,21 +8,24 @@ import HospitalDetail from './pages/HospitalDetail';
 import Emergency from './pages/Emergency';
 import Login from './pages/Login';
 import HospitalsPage from './pages/HospitalsPage';
+import { AuthProvider } from './auth';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/overview" element={<OverviewPage />} />
-        <Route path="/hospitals" element={<HospitalsPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/results" element={<Results />} />
-        <Route path="/hospital/:id" element={<HospitalDetail />} />
-        <Route path="/emergency" element={<Emergency />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/overview" element={<OverviewPage />} />
+          <Route path="/hospitals" element={<HospitalsPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/hospital/:id" element={<HospitalDetail />} />
+          <Route path="/emergency" element={<Emergency />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

@@ -14,6 +14,7 @@ import {
 import Navbar from '../components/Navbar';
 import { getHospital, getQueue } from '../api';
 import type { HospitalDetail, QueueResponse } from '../types';
+import { getConsultationFeeRange } from '../demoFees';
 
 export default function HospitalDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -110,6 +111,14 @@ export default function HospitalDetailPage() {
   const activeDept =
     hospital.departments.find((d) => d.name.toLowerCase() === department.toLowerCase()) ??
     hospital.departments[0];
+  const activeFee = activeDept
+    ? getConsultationFeeRange(
+        hospital.name,
+        activeDept.name,
+        activeDept.consultation_fee_min,
+        activeDept.consultation_fee_max,
+      )
+    : null;
 
   return (
     <div className="site-wrapper bg-[#fbfcfd]">
@@ -186,6 +195,12 @@ export default function HospitalDetailPage() {
               <div className="department-list">
                 {hospital.departments.map((d) => {
                   const isCurrent = d.name.toLowerCase() === department.toLowerCase();
+                  const fee = getConsultationFeeRange(
+                    hospital.name,
+                    d.name,
+                    d.consultation_fee_min,
+                    d.consultation_fee_max,
+                  );
                   return (
                     <div
                       key={d.id}
@@ -213,8 +228,8 @@ export default function HospitalDetailPage() {
 
                       <div className="department-row-meta">
                         <div className="department-fee">
-                          {d.consultation_fee_min != null && d.consultation_fee_max != null
-                            ? `₹${d.consultation_fee_min} to ₹${d.consultation_fee_max}`
+                          {fee
+                            ? `₹${fee.min} to ₹${fee.max}`
                             : 'Fee not listed'}
                         </div>
                         <div className="department-queue">
@@ -256,8 +271,8 @@ export default function HospitalDetailPage() {
                 <div className="flex items-baseline gap-1 text-slate-900 mb-1">
                   <IndianRupee className="w-4 h-4 text-slate-600 self-center" />
                   <span className="text-2xl font-bold tracking-tight">
-                    {activeDept.consultation_fee_min != null && activeDept.consultation_fee_max != null
-                      ? `${activeDept.consultation_fee_min} to ${activeDept.consultation_fee_max}`
+                  {activeFee
+                    ? `${activeFee.min} to ${activeFee.max}`
                       : 'Not listed'}
                   </span>
                 </div>

@@ -15,6 +15,7 @@ import LocationPicker from '../components/LocationPicker';
 import { searchHospitals } from '../api';
 import type { SearchResponse, SearchResult } from '../types';
 import { getSearchLocation, withSearchLocation } from '../searchLocation';
+import { getConsultationFeeRange } from '../demoFees';
 
 type SortKey = 'rank' | 'distance_km' | 'estimated_wait_min' | 'consultation_fee_min';
 
@@ -68,7 +69,9 @@ export default function Results() {
   const filtered = (data?.results ?? []).filter((r) => !filterEmergency || r.emergency_available);
   const sorted = [...filtered].sort((a, b) => {
     if (sortKey === 'consultation_fee_min') {
-      return (a.consultation_fee_min ?? 9999) - (b.consultation_fee_min ?? 9999);
+      const aFee = getResultFee(a);
+      const bFee = getResultFee(b);
+      return (aFee?.min ?? 9999) - (bFee?.min ?? 9999);
     }
     return (a[sortKey] as number) - (b[sortKey] as number);
   });
@@ -251,6 +254,7 @@ export default function Results() {
 
 function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: () => void }) {
   const isTopRanked = r.rank === 1;
+  const fee = getResultFee(r);
 
   return (
     <div
@@ -307,8 +311,8 @@ function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: (
             <IndianRupee aria-hidden="true" />
             <span>Consultation fee</span>
             <strong>
-              {r.consultation_fee_min != null && r.consultation_fee_max != null
-                ? `${r.consultation_fee_min}–${r.consultation_fee_max}`
+              {fee
+                ? `${fee.min}–${fee.max}`
                 : 'Not listed'}
             </strong>
           </div>
@@ -320,5 +324,14 @@ function HospitalCard({ result: r, onClick }: { result: SearchResult; onClick: (
         </div>
       </div>
     </div>
+  );
+}
+
+function getResultFee(result: SearchResult) {
+  return getConsultationFeeRange(
+    result.hospital_name,
+    result.department,
+    result.consultation_fee_min,
+    result.consultation_fee_max,
   );
 }

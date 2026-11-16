@@ -8,9 +8,11 @@ import {
   Command,
   HeartPulse,
   LayoutDashboard,
+  LogOut,
   Search,
   ShieldAlert,
 } from 'lucide-react';
+import { useAuth } from '../useAuth';
 
 const navigation = [
   {
@@ -29,7 +31,9 @@ const navigation = [
 export default function Navbar({ dark = false }: { dark?: boolean }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [query, setQuery] = useState('');
+  const [signOutError, setSignOutError] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -55,6 +59,15 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
     setQuery('');
   }
 
+  async function handleSignOut() {
+    setSignOutError('');
+    try {
+      await signOut();
+    } catch {
+      setSignOutError('Signed out on this device, but server sign-out could not be confirmed.');
+    }
+  }
+
   if (dark) {
     return (
       <header className="public-nav">
@@ -69,9 +82,17 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
             <Link to="/emergency" className="public-emergency"><span /> Emergency</Link>
           </nav>
           <div className="public-actions">
-            <Link to="/login" className="public-signin">Sign in</Link>
+            {user ? (
+              <>
+                <Link to="/overview" className="public-user-name" title={user.email}>{user.name}</Link>
+                <button type="button" className="public-signout" onClick={() => void handleSignOut()}>Sign out</button>
+              </>
+            ) : (
+              <Link to="/login" className="public-signin">Sign in</Link>
+            )}
             <Link to="/search" className="public-cta">Find care <ArrowUpRight aria-hidden="true" /></Link>
           </div>
+          {signOutError && <span className="auth-signout-error" role="status">{signOutError}</span>}
         </div>
       </header>
     );
@@ -138,11 +159,21 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
             <div><strong>Demo environment</strong><small>Illustrative, unverified data</small></div>
           </div>
           <Link to="/" className="sidebar-home-link">Back to public site <ArrowUpRight aria-hidden="true" /></Link>
-          <Link to="/login" className="sidebar-profile">
-            <span className="profile-avatar">QL</span>
-            <span><strong>Guest workspace</strong><small>Preview access</small></span>
-            <ChevronDown aria-hidden="true" />
-          </Link>
+          {user ? (
+            <div className="sidebar-profile is-authenticated">
+              <span className="profile-avatar">{user.name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</span>
+              <span><strong>{user.name}</strong><small>{user.email}</small></span>
+              <button type="button" className="sidebar-signout" onClick={() => void handleSignOut()} aria-label="Sign out" title="Sign out">
+                <LogOut aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="sidebar-profile">
+              <span className="profile-avatar">QL</span>
+              <span><strong>Guest workspace</strong><small>Sign in or create an account</small></span>
+              <ChevronDown aria-hidden="true" />
+            </Link>
+          )}
         </div>
       </aside>
 
@@ -164,8 +195,12 @@ export default function Navbar({ dark = false }: { dark?: boolean }) {
             <kbd>Ctrl K</kbd>
           </button>
         </form>
-        <div className="topbar-status"><span /> Demo data</div>
+        <div className="topbar-status" title={user?.email}>
+          <span />
+          <strong>{user?.name ?? 'Demo data'}</strong>
+        </div>
       </header>
+      {signOutError && <p className="auth-signout-error" role="status">{signOutError}</p>}
     </div>
   );
 }

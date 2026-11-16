@@ -1,17 +1,48 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Clock3, Eye, EyeOff, HeartPulse, MapPin, ShieldCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Clock3, Eye, EyeOff, HeartPulse, MapPin, ShieldCheck, UserRound } from 'lucide-react';
+import { useAuth } from '../useAuth';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const { signIn, signUp, signInDemo } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  function handleSubmit(event: FormEvent) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setErrorMessage('');
+    try {
+      if (isSignup) {
+        await signUp(name, email, password);
+      } else {
+        await signIn(email, password);
+      }
+      navigate('/overview', { replace: true });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to sign in right now.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleDemoSignIn() {
+    setIsSubmitting(true);
+    setErrorMessage('');
+    try {
+      await signInDemo();
+      navigate('/overview', { replace: true });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to start a demo session.');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -85,12 +116,12 @@ export default function Login() {
               <h2>{isSignup ? 'Create your account' : 'Sign in to your account'}</h2>
               <p>
                 {isSignup
-                  ? 'Account creation is not enabled in this demonstration.'
-                  : 'Account access is not enabled in this demonstration.'}
+                  ? 'Create an account to save your name for your QueueLess visits.'
+                  : 'Sign in to continue to your QueueLess workspace.'}
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="auth-form">
+            <form onSubmit={(event) => void handleSubmit(event)} className="auth-form">
               {isSignup && (
                 <div className="auth-field">
                   <label htmlFor="auth-name">Full name</label>
@@ -112,6 +143,8 @@ export default function Login() {
                   id="auth-email"
                   type="email"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
@@ -128,7 +161,8 @@ export default function Login() {
                     id="auth-password"
                     type={showPassword ? 'text' : 'password'}
                     autoComplete={isSignup ? 'new-password' : 'current-password'}
-                    minLength={8}
+                    minLength={isSignup ? 8 : undefined}
+                    maxLength={128}
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
@@ -146,26 +180,20 @@ export default function Login() {
                 {isSignup && <span className="auth-field-hint">Use at least 8 characters.</span>}
               </div>
 
-              <button type="submit" disabled={submitted} className="auth-submit">
-                {submitted ? (
-                  <>
-                    <Check />
-                    Demo only
-                  </>
-                ) : (
-                  <>
-                    {isSignup ? 'Preview registration' : 'Preview sign-in'}
-                    <ArrowRight />
-                  </>
-                )}
+              {errorMessage && <p className="auth-error" role="alert">{errorMessage}</p>}
+
+              <button type="submit" disabled={isSubmitting} className="auth-submit">
+                {isSubmitting ? 'Please wait…' : isSignup ? 'Create account' : 'Sign in'}
+                {!isSubmitting && <ArrowRight />}
               </button>
             </form>
-            {submitted && (
-              <p className="auth-demo-note" role="status">
-                Account services are not implemented. Your details were not sent or saved; you can
-                browse the directory without signing in.
-              </p>
-            )}
+
+            <div className="auth-divider"><span>or</span></div>
+            <button type="button" className="auth-demo-submit" disabled={isSubmitting} onClick={() => void handleDemoSignIn()}>
+              <UserRound />
+              Continue with demo account
+            </button>
+            <p className="auth-demo-caption">Signs in as QueueLess Demo. No password needed.</p>
 
             <div className="auth-switch">
               <span>{isSignup ? 'Already have an account?' : 'New to QueueLess?'}</span>
@@ -173,7 +201,8 @@ export default function Login() {
                 type="button"
                 onClick={() => {
                   setIsSignup((previous) => !previous);
-                  setSubmitted(false);
+                  setErrorMessage('');
+                  setPassword('');
                 }}
               >
                 {isSignup ? 'Sign in' : 'Create an account'}
@@ -182,7 +211,7 @@ export default function Login() {
 
             <p className="auth-demo-note">
               <ShieldCheck />
-              Visual prototype only · no account is created and credentials are not sent or stored.
+              Passwords are securely hashed. Do not enter medical or other sensitive information.
             </p>
           </div>
         </section>
